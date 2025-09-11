@@ -91,6 +91,81 @@
                 max-width: 150px;
             }
         }
+
+        /* Footer Styles */
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .footer-logo-img {
+            height: 2.5rem;
+            width: auto;
+        }
+
+        .footer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .footer-studio-name {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #111827;
+            margin: 0;
+        }
+
+        .footer-email {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-copyright {
+            font-size: 0.875rem;
+            color: #9ca3af;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .footer-container {
+                padding: 0 1rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
+
+            .footer-left {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .footer-logo-img {
+                height: 2rem;
+            }
+        }
     </style>
     
     <!-- Firebase CDN -->
@@ -254,14 +329,26 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white py-12">
-        <div class="container mx-auto px-4 text-center">
-            <div class="text-gray-600">
-                <p class="mb-2">Lapillo</p>
-                <p class="text-sm">studio.lapillo@gmail.com</p>
-            </div>
-            <div class="text-gray-500 text-sm mt-4">
-                © 2025 Lapillo. All rights reserved.
+    <footer class="bg-white py-16 border-t border-gray-100">
+        <div class="footer-container">
+            <div class="footer-content">
+                <!-- Footer Left: Studio Info -->
+                <div class="footer-left">
+                    <div class="footer-logo">
+                        <a href="index.html">
+                            <img src="./img/lapillo_logo_web.png" alt="lapillo" class="footer-logo-img">
+                        </a>
+                    </div>
+                    <div class="footer-info">
+                        <p class="footer-studio-name">Lapillo</p>
+                        <p class="footer-email">studio.lapillo@gmail.com</p>
+                    </div>
+                </div>
+                
+                <!-- Footer Right: Copyright -->
+                <div class="footer-right">
+                    <p class="footer-copyright">© 2025 Lapillo. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
