@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Portfolio Management</title>
+    <title>Admin - Portfolio Management (Firebase)</title>
     <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase CDN v9 compat -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-storage.js"></script>
+    
     <style>
         body {
             font-family: 'Noto Sans KR', 'Helvetica Neue', Arial, sans-serif;
@@ -148,26 +155,11 @@
             pointer-events: auto;
         }
         
-        /* 미리보기 영역이 표시될 때 파일 input 영역과 겹치지 않도록 */
-        .file-upload-container .image-preview-container:not(.hidden) ~ .file-input,
-        .file-upload-container .multiple-images-preview-container:not(:empty) ~ .file-input {
-            pointer-events: none;
-        }
-        
-        /* X 버튼과 미리보기 이미지에 높은 우선순위 */
-        .remove-preview-btn,
-        .preview-image,
-        .multiple-preview-image {
-            pointer-events: auto !important;
-            position: relative;
-            z-index: 25;
-        }
-        
         .file-input {
             position: absolute;
             opacity: 0;
             width: 100%;
-            height: 120px; /* min-height와 동일하게 제한 */
+            height: 120px;
             cursor: pointer;
             z-index: 1;
             top: 0;
@@ -273,182 +265,55 @@
             background-color: #f0f9ff !important;
         }
         
-        /* Upload Modal Styles */
-        .upload-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .upload-modal-content {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow: hidden;
-            z-index: 1001;
-        }
-        
-        .upload-modal-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid #e5e7eb;
-            background-color: #f9fafb;
-        }
-        
-        .upload-modal-body {
-            padding: 1.5rem;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .upload-modal-footer {
-            padding: 1rem 1.5rem;
-            border-top: 1px solid #e5e7eb;
-            background-color: #f9fafb;
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-        }
-        
-        .upload-progress-container {
-            margin-bottom: 1.5rem;
-        }
-        
-        .upload-progress-bar {
-            width: 100%;
-            height: 8px;
-            background-color: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 0.75rem;
-        }
-        
-        .upload-progress-fill {
-            height: 100%;
-            background-color: #10b981;
-            border-radius: 4px;
-            transition: width 0.3s ease;
-            width: 0%;
-        }
-        
-        .upload-progress-text {
-            text-align: center;
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .upload-file-list {
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
+        .firebase-status {
             padding: 1rem;
-            background-color: #f9fafb;
-        }
-        
-        .upload-file-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        
-        .upload-file-item:last-child {
-            border-bottom: none;
-        }
-        
-        .upload-file-info {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        
-        .upload-file-icon {
-            width: 2rem;
-            height: 2rem;
-            background-color: #10b981;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-        }
-        
-        .upload-file-details {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        
-        .upload-file-name {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-        }
-        
-        .upload-file-size {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-        
-        .upload-file-status {
-            font-size: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
             font-weight: 500;
         }
         
-        .upload-file-status.ready {
-            color: #059669;
+        .firebase-connected {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
         }
         
-        .upload-file-status.uploading {
-            color: #d97706;
-        }
-        
-        .upload-file-status.completed {
-            color: #10b981;
-        }
-        
-        .upload-file-status.error {
-            color: #dc2626;
-        }
-        
-        .modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 999;
-        }
-        
-        .form-buttons {
-            position: relative;
-            z-index: 10;
+        .firebase-disconnected {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
         }
     </style>
 </head>
 <body>
-    <div class="admin-container">
+    <!-- Loading Screen -->
+    <div id="auth-loading" class="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+            <p class="text-gray-600">인증 확인 중...</p>
+        </div>
+    </div>
+
+    <div id="admin-content" class="admin-container" style="display: none;">
         <!-- Header -->
         <div class="flex justify-between items-center mb-8">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900">Portfolio Admin</h1>
-                <p class="text-gray-600 mt-2">포트폴리오 작품을 관리하고 편집하세요</p>
+                <h1 class="text-3xl font-bold text-gray-900">Portfolio Admin (Firebase)</h1>
+                <p class="text-gray-600 mt-2">실시간 데이터베이스로 포트폴리오를 관리하세요</p>
             </div>
-            <div class="flex gap-3">
+            <div class="flex items-center gap-3">
+                <span id="user-email" class="text-sm text-gray-500 mr-4"></span>
                 <a href="index.html" class="btn-secondary">사이트 보기</a>
                 <button onclick="showAddForm()" class="btn-primary">새 작품 추가</button>
+                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
+                    로그아웃
+                </button>
             </div>
+        </div>
+
+        <!-- Firebase Status -->
+        <div id="firebase-status" class="firebase-status firebase-disconnected">
+            🔄 Firebase 연결 중...
         </div>
 
         <!-- Alert Messages -->
@@ -478,13 +343,13 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                     </svg>
                                     <span>이미지를 선택하거나 드래그하세요</span>
+                                    <small class="text-gray-500">Firebase Storage에 자동 업로드됩니다</small>
                                 </label>
                                 <div id="thumbnail-preview" class="image-preview-container hidden">
                                     <img id="thumbnail-preview-img" class="preview-image" alt="Thumbnail preview">
                                     <button type="button" class="remove-preview-btn" onclick="removeThumbnailPreview()">×</button>
                                 </div>
                             </div>
-                            <input type="hidden" id="portfolio-thumbnail" value="">
                         </div>
                         
                         <div>
@@ -520,12 +385,12 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                     </svg>
                                     <span>이미지들을 선택하거나 드래그하세요 (여러 개 선택 가능)</span>
+                                    <small class="text-gray-500">Firebase Storage에 자동 업로드됩니다</small>
                                 </label>
                                 <div id="detail-images-preview" class="multiple-images-preview-container">
                                     <!-- 미리보기 이미지들이 여기에 표시됩니다 -->
                                 </div>
                             </div>
-                            <input type="hidden" id="portfolio-images" value="">
                         </div>
                     </div>
                 </div>
@@ -541,61 +406,73 @@
         <div class="form-section p-6">
             <h2 class="text-2xl font-semibold mb-6">포트폴리오 목록</h2>
             <div id="portfolio-list" class="portfolio-grid">
-                <!-- Portfolio items will be loaded here -->
+                <p class="text-gray-500 text-center py-8">Firebase 연결 중...</p>
             </div>
         </div>
     </div>
 
-    <!-- Upload Progress Modal -->
-    <div id="upload-modal" class="upload-modal hidden">
-        <div class="upload-modal-content">
-            <div class="upload-modal-header">
-                <h3 class="text-lg font-semibold">파일 업로드 진행중</h3>
-            </div>
-            <div class="upload-modal-body">
-                <div class="upload-progress-container">
-                    <div class="upload-progress-bar">
-                        <div id="upload-progress-fill" class="upload-progress-fill"></div>
-                    </div>
-                    <div id="upload-progress-text" class="upload-progress-text">업로드 준비중...</div>
-                </div>
-                <div id="upload-file-list" class="upload-file-list">
-                    <!-- 업로드할 파일 목록이 여기에 표시됩니다 -->
-                </div>
-            </div>
-            <div class="upload-modal-footer">
-                <button type="button" id="upload-cancel-btn" class="btn-secondary">취소</button>
-                <button type="button" id="upload-confirm-btn" class="btn-primary" disabled>저장</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Backdrop -->
-    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
-
-    <script src="admin.js"></script>
+    <!-- Firebase 설정 및 관리자 스크립트 -->
+    <script src="js/firebase-cdn.js"></script>
+    <script src="admin-firebase.js"></script>
+    
     <script>
-        // 전역 함수들을 window 객체에 명시적으로 바인딩
-        window.showAddForm = function() {
-            if (window.portfolioManager) {
-                window.portfolioManager.showAddForm();
-            } else {
-                console.error('portfolioManager not initialized');
-            }
-        };
-        
-        window.hideForm = function() {
-            if (window.portfolioManager) {
-                window.portfolioManager.hideForm();
-            } else {
-                console.error('portfolioManager not initialized');
-            }
-        };
-        
-        // portfolioManager를 전역으로 설정
+        // Firebase 연결 상태 표시
         document.addEventListener('DOMContentLoaded', function() {
-            if (!window.portfolioManager) {
-                window.portfolioManager = new PortfolioManager();
+            const statusElement = document.getElementById('firebase-status');
+            
+            // Firebase 연결 확인
+            if (typeof firebase !== 'undefined') {
+                setTimeout(() => {
+                    if (window.firebaseService) {
+                        statusElement.textContent = '🔥 Firebase 연결됨 - 실시간 동기화 활성화';
+                        statusElement.className = 'firebase-status firebase-connected';
+                    } else {
+                        statusElement.textContent = '❌ Firebase 설정을 확인해주세요';
+                        statusElement.className = 'firebase-status firebase-disconnected';
+                    }
+                }, 1000);
+            } else {
+                statusElement.textContent = '❌ Firebase 라이브러리 로드 실패';
+                statusElement.className = 'firebase-status firebase-disconnected';
+            }
+        });
+
+        // Firebase Authentication 설정
+        const auth = firebase.auth();
+
+        // 인증 상태 확인
+        auth.onAuthStateChanged((user) => {
+            const loadingScreen = document.getElementById('auth-loading');
+            const adminContent = document.getElementById('admin-content');
+            const userEmailSpan = document.getElementById('user-email');
+
+            if (user) {
+                // 로그인된 상태
+                console.log('인증된 사용자:', user.email);
+                userEmailSpan.textContent = user.email;
+                
+                // 로딩 화면 숨기고 관리자 콘텐츠 표시
+                loadingScreen.style.display = 'none';
+                adminContent.style.display = 'block';
+                
+            } else {
+                // 로그인되지 않은 상태 - 로그인 페이지로 리다이렉트
+                console.log('인증되지 않은 접근 시도');
+                window.location.href = 'admin-login.html';
+            }
+        });
+
+        // 로그아웃 버튼 이벤트
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            if (confirm('로그아웃하시겠습니까?')) {
+                try {
+                    await auth.signOut();
+                    console.log('로그아웃 완료');
+                    // onAuthStateChanged에서 자동으로 로그인 페이지로 이동됨
+                } catch (error) {
+                    console.error('로그아웃 실패:', error);
+                    alert('로그아웃에 실패했습니다.');
+                }
             }
         });
     </script>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오 상세 - lapillo</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="studio-lapillo.css">
+    
+    <!-- Portfolio Navigation Styles -->
+    <style>
+        .portfolio-navigation {
+            margin-top: 4rem;
+            padding: 2rem 0;
+            background: white;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .nav-prev {
+            position: absolute;
+            left: 2rem;
+        }
+
+        .nav-next {
+            position: absolute;
+            right: 2rem;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0;
+            background: white;
+            border: none;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        .nav-button:hover {
+            color: #111827;
+        }
+
+        .nav-arrow {
+            width: 1.25rem;
+            height: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .nav-title {
+            font-size: 1rem;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-prev {
+                left: 1rem;
+            }
+
+            .nav-next {
+                right: 1rem;
+            }
+            
+            .nav-button {
+                padding: 0;
+                font-size: 0.9rem;
+            }
+            
+            .nav-title {
+                max-width: 150px;
+            }
+        }
+    </style>
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-storage.js"></script>
+</head>
+<body class="bg-white font-sans">
+    <!-- Header - pumdt.html과 동일한 구조 -->
+    <header class="bg-white">
+        <div class="header-container">
+            <div class="flex justify-between items-center h-20">
+                <!-- Mobile Hamburger Menu -->
+                <div class="mobile-hamburger md:hidden">
+                    <button class="hamburger-button" id="hamburger-btn">
+                        <svg class="hamburger-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="hamburger-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path class="close-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" style="display: none;"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Desktop Left side: Logo and Navigation -->
+                <div class="hidden md:flex items-center space-x-12">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <a href="index.html">
+                            <img src="./img/lapillo_logo_web.png" alt="lapillo" style="height: 6rem;" class="w-auto logo-desktop">
+                        </a>
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <nav class="flex space-x-8">
+                        <a href="index.html#design" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Design</a>
+                        <a href="index.html#artwork" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Artwork</a>
+                        <a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>
+                        <a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>
+                    </nav>
+                </div>
+
+                <!-- Mobile Logo (centered) -->
+                <div class="mobile-logo md:hidden flex-1 flex justify-center">
+                    <a href="index.html">
+                        <img src="./img/lapillo_logo_web.png" alt="lapillo" class="logo-mobile">
+                    </a>
+                </div>
+                
+                <!-- Desktop Right side: Instagram Icon -->
+                <div class="hidden md:block">
+                    <a href="http://instagram.com/studio_lapillo/" target="_blank" class="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.90-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Mobile Spacer (to balance hamburger) -->
+                <div class="mobile-spacer md:hidden"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <div class="mobile-menu-content">
+            <nav class="mobile-nav">
+                <a href="index.html#design" class="mobile-nav-link">Design</a>
+                <a href="index.html#artwork" class="mobile-nav-link">Artwork</a>
+                <a href="index.html#about" class="mobile-nav-link">About</a>
+                <a href="index.html#contact" class="mobile-nav-link">Contact</a>
+                <div class="mobile-instagram-wrapper">
+                <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                    </svg>
+                </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+
+    <!-- Portfolio Detail Content -->
+    <main class="py-6">
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+            <p class="text-gray-600">포트폴리오 로딩 중...</p>
+        </div>
+
+        <!-- Portfolio Content - pumdt.html 스타일 활용 -->
+        <div id="portfolio-content" class="project-detail-wrapper hidden">
+            <!-- Title Section - 1 Column -->
+            <div class="project-title-section">
+                <h1 id="portfolio-title" class="project-title"></h1>
+            </div>
+            
+            <!-- Text Section - 2 Columns -->
+            <div class="project-text-section">
+                <!-- Left Column -->
+                <div class="project-text-left">
+                    <div class="project-description" id="portfolio-description">
+                        <!-- Description will be inserted here -->
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="project-text-right">
+                    <div class="project-info">
+                        <p class="project-meta"><strong>Project</strong> | <span id="portfolio-project"></span></p>
+                        <p class="project-meta"><strong>Client</strong> | <span id="portfolio-client"></span></p>
+                        <p class="project-meta"><strong id="portfolio-date"></strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Section - 1 Column -->
+            <div class="project-images-section" id="portfolio-gallery">
+                <!-- Detail images will be inserted here -->
+            </div>
+
+            <!-- Portfolio Navigation -->
+            <div class="portfolio-navigation">
+                <div class="nav-container">
+                    <!-- Previous Portfolio -->
+                    <div class="nav-prev" id="nav-prev" style="display: none;">
+                        <button class="nav-button" onclick="navigateToPortfolio('prev')">
+                            <svg class="nav-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                            </svg>
+                            <span class="nav-title" id="prev-title"></span>
+                        </button>
+                    </div>
+
+                    <!-- Next Portfolio -->
+                    <div class="nav-next" id="nav-next" style="display: none;">
+                        <button class="nav-button" onclick="navigateToPortfolio('next')">
+                            <span class="nav-title" id="next-title"></span>
+                            <svg class="nav-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="hidden text-center py-12">
+            <div class="text-red-500 mb-4">
+                <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h2 class="text-2xl font-bold mb-2">포트폴리오를 찾을 수 없습니다</h2>
+                <p class="text-gray-600">요청하신 포트폴리오가 존재하지 않거나 삭제되었습니다.</p>
+                <a href="index.html" class="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600 transition-colors">
+                    홈으로 돌아가기
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white py-12">
+        <div class="container mx-auto px-4 text-center">
+            <div class="text-gray-600">
+                <p class="mb-2">Lapillo</p>
+                <p class="text-sm">studio.lapillo@gmail.com</p>
+            </div>
+            <div class="text-gray-500 text-sm mt-4">
+                © 2025 Lapillo. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase Script -->
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
+            authDomain: "lapillo-portfolio.firebaseapp.com",
+            projectId: "lapillo-portfolio",
+            storageBucket: "lapillo-portfolio.firebasestorage.app",
+            messagingSenderId: "7087688501",
+            appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
+            measurementId: "G-T2BS7KX4G6"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URL에서 포트폴리오 ID 추출
+        function getPortfolioIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // 포트폴리오 상세 데이터 로드
+        async function loadPortfolioDetail() {
+            try {
+                const portfolioId = getPortfolioIdFromUrl();
+                
+                if (!portfolioId) {
+                    showError();
+                    return;
+                }
+
+                console.log('포트폴리오 ID:', portfolioId);
+
+                // 모든 포트폴리오 데이터를 먼저 로드 (네비게이션을 위해)
+                const allSnapshot = await db.collection('portfolios').orderBy('createdAt', 'desc').get();
+                allPortfolios = [];
+                allSnapshot.forEach((doc) => {
+                    allPortfolios.push({ id: doc.id, ...doc.data() });
+                });
+
+                console.log('전체 포트폴리오 로드 완료:', allPortfolios.length, '개');
+
+                // 현재 포트폴리오 찾기
+                const currentPortfolio = allPortfolios.find(p => p.id === portfolioId);
+                
+                if (!currentPortfolio) {
+                    console.error('포트폴리오를 찾을 수 없습니다:', portfolioId);
+                    showError();
+                    return;
+                }
+
+                // 현재 포트폴리오의 인덱스 설정
+                currentPortfolioIndex = allPortfolios.findIndex(p => p.id === portfolioId);
+                
+                console.log('현재 포트폴리오 인덱스:', currentPortfolioIndex);
+                console.log('로드된 포트폴리오:', currentPortfolio);
+
+                // 포트폴리오 데이터 표시
+                displayPortfolio(currentPortfolio);
+
+            } catch (error) {
+                console.error('포트폴리오 로딩 실패:', error);
+                showError();
+            }
+        }
+
+        // 전역 변수
+        let allPortfolios = [];
+        let currentPortfolioIndex = -1;
+
+        // 포트폴리오 데이터 화면에 표시 (pumdt.html 스타일 적용)
+        function displayPortfolio(portfolio) {
+            // 로딩 숨기기
+            document.getElementById('loading').classList.add('hidden');
+            
+            // 포트폴리오 내용 표시
+            document.getElementById('portfolio-content').classList.remove('hidden');
+
+            // 페이지 제목 업데이트
+            document.title = `${portfolio.title} - lapillo`;
+
+            // 데이터 채우기
+            document.getElementById('portfolio-title').textContent = portfolio.title;
+            document.getElementById('portfolio-project').textContent = portfolio.project || '';
+            document.getElementById('portfolio-client').textContent = portfolio.client || '';
+            document.getElementById('portfolio-date').textContent = portfolio.date || '';
+            
+            // 설명 (줄바꿈 처리, 단락별로 <p> 태그로 감싸기)
+            const descriptionDiv = document.getElementById('portfolio-description');
+            const paragraphs = portfolio.description.split('\n\n').filter(p => p.trim());
+            descriptionDiv.innerHTML = paragraphs.map(paragraph => 
+                `<p>${paragraph.replace(/\n/g, '<br>')}</p>`
+            ).join('');
+
+            // 상세 이미지 갤러리 (pumdt.html 스타일의 project-image 사용)
+            const galleryDiv = document.getElementById('portfolio-gallery');
+            if (portfolio.images && portfolio.images.length > 0) {
+                galleryDiv.innerHTML = portfolio.images.map((imageUrl, index) => `
+                    <div class="project-image">
+                        <img src="${imageUrl}" alt="${portfolio.title} 상세 이미지 ${index + 1}" 
+                             onclick="openImageModal('${imageUrl}')"
+                             style="cursor: pointer;">
+                    </div>
+                `).join('');
+            } else {
+                galleryDiv.innerHTML = '<div class="project-image"><p class="text-center text-gray-500">추가 이미지가 없습니다.</p></div>';
+            }
+
+            // 네비게이션 업데이트
+            updateNavigation();
+        }
+
+        // 포트폴리오 네비게이션 업데이트
+        function updateNavigation() {
+            const prevNav = document.getElementById('nav-prev');
+            const nextNav = document.getElementById('nav-next');
+            const prevTitle = document.getElementById('prev-title');
+            const nextTitle = document.getElementById('next-title');
+
+            // 이전 포트폴리오
+            if (currentPortfolioIndex > 0) {
+                const prevPortfolio = allPortfolios[currentPortfolioIndex - 1];
+                prevTitle.textContent = prevPortfolio.title;
+                prevNav.style.display = 'block';
+            } else {
+                prevNav.style.display = 'none';
+            }
+
+            // 다음 포트폴리오
+            if (currentPortfolioIndex < allPortfolios.length - 1) {
+                const nextPortfolio = allPortfolios[currentPortfolioIndex + 1];
+                nextTitle.textContent = nextPortfolio.title;
+                nextNav.style.display = 'block';
+            } else {
+                nextNav.style.display = 'none';
+            }
+        }
+
+        // 포트폴리오 네비게이션 함수
+        function navigateToPortfolio(direction) {
+            let targetIndex;
+            
+            if (direction === 'prev' && currentPortfolioIndex > 0) {
+                targetIndex = currentPortfolioIndex - 1;
+            } else if (direction === 'next' && currentPortfolioIndex < allPortfolios.length - 1) {
+                targetIndex = currentPortfolioIndex + 1;
+            } else {
+                return; // 범위를 벗어나면 아무것도 하지 않음
+            }
+
+            const targetPortfolio = allPortfolios[targetIndex];
+            
+            // URL 업데이트 (브라우저 히스토리에 추가)
+            const newUrl = `portfolio-detail.html?id=${targetPortfolio.id}`;
+            window.history.pushState({}, '', newUrl);
+            
+            // 현재 인덱스 업데이트
+            currentPortfolioIndex = targetIndex;
+            
+            // 포트폴리오 표시
+            displayPortfolio(targetPortfolio);
+            
+            // 페이지 상단으로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 에러 상태 표시
+        function showError() {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error-state').classList.remove('hidden');
+        }
+
+        // 이미지 모달 (간단한 확대 보기)
+        function openImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50';
+            modal.onclick = () => document.body.removeChild(modal);
+            
+            modal.innerHTML = `
+                <div class="max-w-4xl max-h-screen p-4">
+                    <img src="${imageUrl}" class="max-w-full max-h-full object-contain">
+                    <button class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300" onclick="document.body.removeChild(this.parentElement.parentElement)">×</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // 모바일 메뉴 토글
+        document.addEventListener('DOMContentLoaded', () => {
+            // Firebase 로드 후 포트폴리오 로드
+            setTimeout(() => {
+                loadPortfolioDetail();
+            }, 1000);
+
+            // 모바일 메뉴 기능
+            const hamburger = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            let isOpen = false;
+
+            function toggleMenu() {
+                isOpen = !isOpen;
+                const hamburgerLines = hamburger.querySelector('.hamburger-lines');
+                const closeLines = hamburger.querySelector('.close-lines');
+
+                if (isOpen) {
+                    mobileMenu.classList.add('active');
+                    hamburgerLines.style.display = 'none';
+                    closeLines.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    mobileMenu.classList.remove('active');
+                    hamburgerLines.style.display = 'block';
+                    closeLines.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+
+            hamburger.addEventListener('click', toggleMenu);
+
+            const menuLinks = mobileMenu.querySelectorAll('a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isOpen) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isOpen) {
+                    toggleMenu();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

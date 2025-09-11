@@ -7,11 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="studio-lapillo.css">
-    
-    <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-storage.js"></script>
 </head>
 <body class="bg-white font-sans">
     <!-- Header -->
@@ -88,12 +83,41 @@
         <div class="portfolio-grid-wrapper">
             <div class="portfolio-grid collection-content-wrapper" id="gridThumbs">
                 
-                <!-- Firebase에서 로드할 때까지 로딩 표시 -->
-                <div id="loading" class="col-span-full text-center py-12">
-                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-                    <p class="text-gray-600">포트폴리오 로딩 중...</p>
-                </div>
+                <!-- PUMDT Korean medicine clinic -->
+                <a class="grid-item" href="pumdt.html">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/IMG_9699.jpg" alt="PUMDT Korean medicine clinic" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">PUMDT Korean medicine clinic</h3>
+                    </div>
+                </a>
 
+                <!-- archive udo - Udo ddangkong & Jam -->
+                <a class="grid-item" href="/design/udo-ddangkong">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/udo+ddangkong_main.jpg" alt="archive udo - Udo ddangkong & Jam" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - Udo ddangkong & Jam</h3>
+                    </div>
+                </a>
+
+                <!-- THE SOONI -->
+                <a class="grid-item" href="/design/sooni">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/main.jpg" alt="THE SOONI" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">THE SOONI</h3>
+                    </div>
+                </a>
 
                 <!-- archive udo - Dripbag -->
                 <a class="grid-item" href="/design/dripbag">
@@ -575,89 +599,6 @@
                 }
             });
         });
-        
-        // Firebase 설정 및 포트폴리오 로드
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
-            authDomain: "lapillo-portfolio.firebaseapp.com",
-            projectId: "lapillo-portfolio",
-            storageBucket: "lapillo-portfolio.firebasestorage.app",
-            messagingSenderId: "7087688501",
-            appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
-            measurementId: "G-T2BS7KX4G6"
-        };
-
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // 포트폴리오 로드 함수
-        async function loadPortfolios() {
-            try {
-                console.log('Firebase 포트폴리오 로딩 시작...');
-                const snapshot = await db.collection('portfolios').orderBy('createdAt', 'desc').get();
-                const portfolios = [];
-                
-                snapshot.forEach((doc) => {
-                    portfolios.push({ id: doc.id, ...doc.data() });
-                });
-                
-                console.log('로드된 포트폴리오:', portfolios.length, '개 (최신순으로 정렬됨)');
-                
-                // 로딩 숨기기
-                const loadingElement = document.getElementById('loading');
-                if (loadingElement) {
-                    loadingElement.style.display = 'none';
-                }
-                
-                // 포트폴리오 렌더링
-                const gridContainer = document.getElementById('gridThumbs');
-                if (gridContainer && portfolios.length > 0) {
-                    // 기존 하드코딩된 항목들을 모두 제거
-                    const existingItems = gridContainer.querySelectorAll('.grid-item');
-                    existingItems.forEach(item => item.remove());
-                    
-                    // Firebase 데이터로 새 항목들 추가
-                    portfolios.forEach(portfolio => {
-                        const gridItem = document.createElement('a');
-                        gridItem.className = 'grid-item';
-                        gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
-                        // onclick 제거 - 이제 실제 상세 페이지로 이동
-                        
-                        gridItem.innerHTML = `
-                            <div class="grid-image">
-                                <div class="grid-image-inner-wrapper">
-                                    <img src="${portfolio.thumbnail}" alt="${portfolio.title}" class="portfolio-image">
-                                </div>
-                            </div>
-                            <div class="portfolio-text">
-                                <h3 class="portfolio-title">${portfolio.title}</h3>
-                            </div>
-                        `;
-                        
-                        gridContainer.appendChild(gridItem);
-                    });
-                }
-                
-            } catch (error) {
-                console.error('포트폴리오 로딩 실패:', error);
-                const loadingElement = document.getElementById('loading');
-                if (loadingElement) {
-                    loadingElement.innerHTML = `
-                        <div class="text-center text-red-500 py-12">
-                            <p>포트폴리오 로딩에 실패했습니다.</p>
-                            <p class="text-sm mt-2">Firebase 연결을 확인해주세요.</p>
-                        </div>
-                    `;
-                }
-            }
-        }
-        
-        // Firebase 로드 후 포트폴리오 로드
-        setTimeout(() => {
-            loadPortfolios();
-        }, 2000);
-        
     </script>
 </body>
 </html>

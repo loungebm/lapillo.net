@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - lapillo</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="studio-lapillo.css">
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-auth.js"></script>
+    
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9fafb;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            color: #111827;
+            margin-bottom: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .login-button {
+            width: 100%;
+            background: #111827;
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .login-button:hover {
+            background: #1f2937;
+        }
+        
+        .login-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            border: 1px solid #fecaca;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo img {
+            height: 3rem;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo -->
+            <div class="logo">
+                <img src="./img/lapillo_logo_web.png" alt="lapillo">
+            </div>
+            
+            <!-- Title -->
+            <h1 class="login-title">Admin Login</h1>
+            
+            <!-- Error Message -->
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">이메일</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        class="form-input" 
+                        placeholder="studio.lapillo@gmail.com"
+                        required
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">비밀번호</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        class="form-input" 
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+                
+                <button type="submit" id="login-button" class="login-button">
+                    <span id="login-text">로그인</span>
+                </button>
+            </form>
+            
+            <!-- Home Link -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="index.html" style="color: #6b7280; text-decoration: none; font-size: 0.875rem;">
+                    ← 홈으로 돌아가기
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
+            authDomain: "lapillo-portfolio.firebaseapp.com",
+            projectId: "lapillo-portfolio",
+            storageBucket: "lapillo-portfolio.firebasestorage.app",
+            messagingSenderId: "7087688501",
+            appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
+            measurementId: "G-T2BS7KX4G6"
+        };
+
+        // Firebase 초기화
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // DOM 요소
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginButton = document.getElementById('login-button');
+        const loginText = document.getElementById('login-text');
+        const errorMessage = document.getElementById('error-message');
+
+        // 이미 로그인되어 있는지 확인
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // 이미 로그인된 상태라면 admin 페이지로 리다이렉트
+                window.location.href = 'admin-firebase.html';
+            }
+        });
+
+        // 로그인 폼 제출 처리
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            
+            if (!email || !password) {
+                showError('이메일과 비밀번호를 모두 입력해주세요.');
+                return;
+            }
+            
+            // 로딩 상태 표시
+            setLoading(true);
+            hideError();
+            
+            try {
+                // Firebase 로그인 시도
+                await auth.signInWithEmailAndPassword(email, password);
+                
+                // 로그인 성공 - admin 페이지로 리다이렉트
+                window.location.href = 'admin-firebase.html';
+                
+            } catch (error) {
+                console.error('로그인 실패:', error);
+                
+                // 에러 메시지 처리
+                let errorText = '로그인에 실패했습니다.';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorText = '등록되지 않은 이메일입니다.';
+                        break;
+                    case 'auth/wrong-password':
+                        errorText = '비밀번호가 올바르지 않습니다.';
+                        break;
+                    case 'auth/invalid-email':
+                        errorText = '올바른 이메일 형식이 아닙니다.';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorText = '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
+                        break;
+                }
+                
+                showError(errorText);
+                setLoading(false);
+            }
+        });
+
+        // 로딩 상태 토글
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loginButton.disabled = true;
+                loginText.innerHTML = '<span class="loading-spinner"></span>로그인 중...';
+            } else {
+                loginButton.disabled = false;
+                loginText.textContent = '로그인';
+            }
+        }
+
+        // 에러 메시지 표시
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        // 에러 메시지 숨기기
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Enter 키로 로그인
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !loginButton.disabled) {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
