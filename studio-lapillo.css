@@ -321,6 +321,117 @@ header .header-container {
     }
 }
 
+/* Project Navigation Styles */
+.project-navigation {
+    background-color: #fafafa;
+}
+
+.project-nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 5vw;
+}
+
+.project-nav-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.project-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    min-width: 280px;
+}
+
+.project-nav-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.project-nav-prev {
+    justify-content: flex-start;
+}
+
+.project-nav-next {
+    justify-content: flex-end;
+}
+
+.nav-arrow {
+    color: #666;
+    transition: color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.project-nav-item:hover .nav-arrow {
+    color: #333;
+}
+
+.nav-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.nav-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 400;
+}
+
+.nav-title {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* When only one navigation item is visible */
+.project-nav-wrapper:has(.project-nav-prev[style*="display: none"]) {
+    justify-content: center;
+}
+
+.project-nav-wrapper:has(.project-nav-next[style*="display: none"]) {
+    justify-content: center;
+}
+
+/* Mobile Project Navigation */
+@media screen and (max-width: 768px) {
+    .project-nav-wrapper {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .project-nav-item {
+        width: 100%;
+        min-width: unset;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .nav-title {
+        font-size: 1rem;
+    }
+    
+    .nav-label {
+        font-size: 0.8rem;
+    }
+    
+    /* Mobile: center single navigation item */
+    .project-nav-wrapper:has(.project-nav-prev[style*="display: none"]) {
+        justify-content: center;
+        align-items: center;
+    }
+}
+
 /* Smooth loading and interaction effects */
 .grid-item {
     opacity: 0;
