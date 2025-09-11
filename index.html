@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lapillo</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="studio-lapillo.css">
+</head>
+<body class="bg-white font-sans">
+    <!-- Header -->
+    <header class="bg-white">
+        <div class="header-container">
+            <div class="flex justify-between items-center h-20">
+                <!-- Mobile Hamburger Menu -->
+                <div class="mobile-hamburger md:hidden">
+                    <button class="hamburger-button" id="hamburger-btn">
+                        <svg class="hamburger-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="hamburger-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path class="close-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" style="display: none;"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Desktop Left side: Logo and Navigation -->
+                <div class="hidden md:flex items-center space-x-12">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <img src="./img/lapillo_logo_web.png" alt="lapillo" style="height: 6rem;" class="w-auto logo-desktop">
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <nav class="flex space-x-8">
+                        <a href="#design" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Design</a>
+                        <a href="#artwork" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Artwork</a>
+                        <a href="#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>
+                        <a href="#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>
+                    </nav>
+                </div>
+
+                <!-- Mobile Logo (centered) -->
+                <div class="mobile-logo md:hidden flex-1 flex justify-center">
+                    <img src="./img/lapillo_logo_web.png" alt="lapillo" class="logo-mobile">
+                </div>
+                
+                <!-- Desktop Right side: Instagram Icon -->
+                <div class="hidden md:flex items-center">
+                    <a href="http://instagram.com/studio_lapillo/" target="_blank" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Mobile Spacer (to balance hamburger) -->
+                <div class="mobile-spacer md:hidden w-6"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <div class="mobile-menu-content">
+            <nav class="mobile-nav">
+                <a href="#design" class="mobile-nav-link">Design</a>
+                <a href="#artwork" class="mobile-nav-link">Artwork</a>
+                <a href="#about" class="mobile-nav-link">About</a>
+                <a href="#contact" class="mobile-nav-link">Contact</a>
+                <div class="mobile-instagram-wrapper">
+                <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                    </svg>
+                </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Portfolio Grid Section -->
+    <main class="py-6">
+        <div class="portfolio-grid-wrapper">
+            <div class="portfolio-grid collection-content-wrapper" id="gridThumbs">
+                
+                <!-- PUMDT Korean medicine clinic -->
+                <a class="grid-item" href="pumdt.html">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/IMG_9699.jpg" alt="PUMDT Korean medicine clinic" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">PUMDT Korean medicine clinic</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - Udo ddangkong & Jam -->
+                <a class="grid-item" href="/design/udo-ddangkong">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/udo+ddangkong_main.jpg" alt="archive udo - Udo ddangkong & Jam" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - Udo ddangkong & Jam</h3>
+                    </div>
+                </a>
+
+                <!-- THE SOONI -->
+                <a class="grid-item" href="/design/sooni">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/main.jpg" alt="THE SOONI" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">THE SOONI</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - Dripbag -->
+                <a class="grid-item" href="/design/dripbag">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/KakaoTalk_Photo_2021-02-26-18-45-31-4.jpeg" alt="archive udo - Dripbag" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - Dripbag</h3>
+                    </div>
+                </a>
+
+                <!-- Blanc Rocher - Udo Peanut -->
+                <a class="grid-item" href="/design/project-one-esr38">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_4161-2.jpg" alt="Blanc Rocher - Udo Peanut" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Blanc Rocher - Udo Peanut</h3>
+                    </div>
+                </a>
+
+                <!-- Blanc Rocher - Udo Peanut Jam -->
+                <a class="grid-item" href="/design/peanutjam">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_4191-2.jpg" alt="Blanc Rocher - Udo Peanut Jam" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Blanc Rocher - Udo Peanut Jam</h3>
+                    </div>
+                </a>
+
+                <!-- Blanc Rocher - Lighthouse Candle -->
+                <a class="grid-item" href="/design/lighthouse">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/re_candle_main.jpg" alt="Blanc Rocher - Lighthouse Candle" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Blanc Rocher - Lighthouse Candle</h3>
+                    </div>
+                </a>
+
+                <!-- Blanc Rocher - Day and night of Udo -->
+                <a class="grid-item" href="/design/br-daynite">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_3061-2.jpg" alt="Blanc Rocher - Day and night of Udo" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Blanc Rocher - Day and night of Udo</h3>
+                    </div>
+                </a>
+
+                <!-- YEONHWA BAKERY -->
+                <a class="grid-item" href="/design/yeonhwa">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/main(1).jpg" alt="YEONHWA BAKERY" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">YEONHWA BAKERY</h3>
+                    </div>
+                </a>
+
+                <!-- Blanc Rocher - Application -->
+                <a class="grid-item" href="/design/br-app">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_4868-2.jpg" alt="Blanc Rocher - Application" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Blanc Rocher - Application</h3>
+                    </div>
+                </a>
+
+                <!-- JUST BREAD - Stollen 2021 -->
+                <a class="grid-item" href="/design/stollen2021">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/stollen+2021_main.jpg" alt="JUST BREAD - Stollen 2021" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">JUST BREAD - Stollen 2021</h3>
+                    </div>
+                </a>
+
+                <!-- JUST BREAD - Stollen 2020 -->
+                <a class="grid-item" href="/design/stollen2020">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/KakaoTalk_Photo_2021-02-15-17-04-50-13.jpg" alt="JUST BREAD - Stollen 2020" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">JUST BREAD - Stollen 2020</h3>
+                    </div>
+                </a>
+
+                <!-- JUST BREAD - Application -->
+                <a class="grid-item" href="/design/justbrd-app">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/main(2).jpg" alt="JUST BREAD - Application" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">JUST BREAD - Application</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - 8 scenes of udo -->
+                <a class="grid-item" href="/design/udo-8scens">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/8scens_main.jpg" alt="archive udo - 8 scenes of udo" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - 8 scenes of udo</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - 4 seasons of udo -->
+                <a class="grid-item" href="/design/udo-4season">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/4season_main.jpg" alt="archive udo - 4 seasons of udo" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - 4 seasons of udo</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - ddangkong magnetic -->
+                <a class="grid-item" href="/design/udo-magnetic">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/magnetic_main.jpg" alt="archive udo - ddangkong magnetic" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - ddangkong magnetic</h3>
+                    </div>
+                </a>
+
+                <!-- a piece of udo - Sticky memo #1 -->
+                <a class="grid-item" href="/design/udo-sticky1">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/memo1_main.jpg" alt="a piece of udo - Sticky memo #1" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a piece of udo - Sticky memo #1</h3>
+                    </div>
+                </a>
+
+                <!-- a piece of udo - Sticky memo #2 -->
+                <a class="grid-item" href="/design/udo-sticky2">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/memo2_main.jpg" alt="a piece of udo - Sticky memo #2" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a piece of udo - Sticky memo #2</h3>
+                    </div>
+                </a>
+
+                <!-- a stroll in udo - glass cup -->
+                <a class="grid-item" href="/design/udo-cup01">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/cup_main.jpg" alt="a stroll in udo - glass cup" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a stroll in udo - glass cup</h3>
+                    </div>
+                </a>
+
+                <!-- a piece of udo - glass cup -->
+                <a class="grid-item" href="/design/udo-cup02">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/piece+cup-01.jpg" alt="a piece of udo - glass cup" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a piece of udo - glass cup</h3>
+                    </div>
+                </a>
+
+                <!-- a traveler's note - fabric bag -->
+                <a class="grid-item" href="/design/udo-bag01">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/ecobag_main.jpg" alt="a traveler's note - fabric bag" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a traveler's note - fabric bag</h3>
+                    </div>
+                </a>
+
+                <!-- a collector's library - fabric bag -->
+                <a class="grid-item" href="/design/udo-bag02">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_3418-2.jpg" alt="a collector's library - fabric bag" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">a collector's library - fabric bag</h3>
+                    </div>
+                </a>
+
+                <!-- here, my udo - fabric bag -->
+                <a class="grid-item" href="/design/udo-bag03">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/d_7ciUd018svc1h275dft0imz_lzjfy5.jpg" alt="here, my udo - fabric bag" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">here, my udo - fabric bag</h3>
+                    </div>
+                </a>
+
+                <!-- soombi of sunrise - fabric bag -->
+                <a class="grid-item" href="/design/udo-bag04">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/e_3ciUd018svc10l81nkqusc41_84ajv1.jpg" alt="soombi of sunrise - fabric bag" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">soombi of sunrise - fabric bag</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo - masking tape -->
+                <a class="grid-item" href="/design/udo-masking">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/masking_main.jpg" alt="archive udo - masking tape" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo - masking tape</h3>
+                    </div>
+                </a>
+
+                <!-- Wild flower of Udo -->
+                <a class="grid-item" href="/design/udo-wildflower">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/hankie_main.jpg" alt="Wild flower of Udo" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Wild flower of Udo</h3>
+                    </div>
+                </a>
+
+                <!-- archive udo -->
+                <a class="grid-item" href="/design/archiveudo">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/arc_BI_main.jpg" alt="archive udo" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">archive udo</h3>
+                    </div>
+                </a>
+
+                <!-- DORMER -->
+                <a class="grid-item" href="/design/dormer">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_1592-2.jpg" alt="DORMER" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">DORMER</h3>
+                    </div>
+                </a>
+
+                <!-- BROS macaron -->
+                <a class="grid-item" href="/design/bros-macaron">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/bros-main.jpg" alt="BROS macaron" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">BROS macaron</h3>
+                    </div>
+                </a>
+
+                <!-- 301 fruit jam -->
+                <a class="grid-item" href="/design/301jam">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/301-main.jpg" alt="301 fruit jam" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">301 fruit jam</h3>
+                    </div>
+                </a>
+
+                <!-- EUNYUJE -->
+                <a class="grid-item" href="/design/eunyuje">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/SAM_7693-2.jpg" alt="EUNYUJE" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">EUNYUJE</h3>
+                    </div>
+                </a>
+
+                <!-- Take Urban -->
+                <a class="grid-item" href="/design/takeurban">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/takeurban_main.jpg" alt="Take Urban" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">Take Urban</h3>
+                    </div>
+                </a>
+
+                <!-- JUST BREAD - Concept illust -->
+                <a class="grid-item" href="/design/justbrd-illust">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/IMG_3423.jpg" alt="JUST BREAD - Concept illust" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">JUST BREAD - Concept illust</h3>
+                    </div>
+                </a>
+
+                <!-- double jeu -->
+                <a class="grid-item" href="/design/doublejeu">
+                    <div class="grid-image">
+                        <div class="grid-image-inner-wrapper">
+                            <img src="./img/dj-main.jpg" alt="double jeu" class="portfolio-image">
+                        </div>
+                    </div>
+                    <div class="portfolio-text">
+                        <h3 class="portfolio-title">double jeu</h3>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white py-12">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Left Column -->
+                <div class="footer-column">
+                    <p class="footer-text">Lapillo </p>
+                    <p class="footer-text">studio.lapillo@gmail.com</p>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="footer-column">
+                    <p class="footer-text">&nbsp;</p>
+                    <p class="footer-text">&copy; 2025 Lapillo. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerLines = document.querySelector('.hamburger-lines');
+            const closeLines = document.querySelector('.close-lines');
+            
+            let isOpen = false;
+
+            function toggleMenu() {
+                isOpen = !isOpen;
+                console.log('Menu toggle:', isOpen);
+                
+                if (isOpen) {
+                    // 메뉴 열기
+                    mobileMenu.style.display = 'flex';
+                    mobileMenu.style.position = 'fixed';
+                    mobileMenu.style.top = '0';
+                    mobileMenu.style.left = '0';
+                    mobileMenu.style.width = '100%';
+                    mobileMenu.style.height = '100vh';
+                    mobileMenu.style.background = 'white';
+                    mobileMenu.style.zIndex = '9999';
+                    mobileMenu.style.flexDirection = 'column';
+                    mobileMenu.style.justifyContent = 'center';
+                    mobileMenu.style.alignItems = 'center';
+                    mobileMenu.style.gap = '3rem';
+                    
+                    // X 버튼 추가
+                    if (!document.getElementById('mobile-close-btn')) {
+                        const closeBtn = document.createElement('button');
+                        closeBtn.id = 'mobile-close-btn';
+                        closeBtn.innerHTML = '<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                        closeBtn.style.cssText = 'position: absolute; top: 2rem; left: 2rem; background: none; border: none; cursor: pointer; padding: 0.5rem; z-index: 10000; color: #333;';
+                        closeBtn.addEventListener('click', toggleMenu);
+                        mobileMenu.appendChild(closeBtn);
+                    }
+                    
+                    // 메뉴 링크 폰트 사이즈 변경
+                    const menuLinks = mobileMenu.querySelectorAll('a');
+                    menuLinks.forEach(link => {
+                        if (!link.classList.contains('mobile-instagram')) {
+                            link.style.fontSize = '1.8rem';
+                        }
+                    });
+                    
+                    hamburgerLines.style.display = 'none';
+                    closeLines.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    // 메뉴 닫기
+                    mobileMenu.style.display = 'none';
+                    
+                    // X 버튼 제거
+                    const closeBtn = document.getElementById('mobile-close-btn');
+                    if (closeBtn) {
+                        closeBtn.remove();
+                    }
+                    
+                    hamburgerLines.style.display = 'block';
+                    closeLines.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // 햄버거 버튼 클릭
+            hamburger.addEventListener('click', toggleMenu);
+
+            // 메뉴 링크 클릭 시 메뉴 닫기
+            const menuLinks = mobileMenu.querySelectorAll('a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isOpen) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            // 화면 크기 변경 시 메뉴 닫기
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isOpen) {
+                    toggleMenu();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

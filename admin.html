@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Portfolio Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .portfolio-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .portfolio-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .form-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: #333;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #555;
+        }
+        
+        .btn-secondary {
+            background-color: #f3f4f6;
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e5e7eb;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #333;
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.2s ease;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #333;
+            box-shadow: 0 0 0 3px rgba(51, 51, 51, 0.1);
+        }
+        
+        .image-preview {
+            width: 100px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        /* File Upload Styles */
+        .file-upload-container {
+            position: relative;
+            isolation: isolate;
+        }
+        
+        .file-upload-container .image-preview-container,
+        .file-upload-container .multiple-images-preview-container {
+            position: relative;
+            z-index: 20;
+            pointer-events: auto;
+        }
+        
+        /* 미리보기 영역이 표시될 때 파일 input 영역과 겹치지 않도록 */
+        .file-upload-container .image-preview-container:not(.hidden) ~ .file-input,
+        .file-upload-container .multiple-images-preview-container:not(:empty) ~ .file-input {
+            pointer-events: none;
+        }
+        
+        /* X 버튼과 미리보기 이미지에 높은 우선순위 */
+        .remove-preview-btn,
+        .preview-image,
+        .multiple-preview-image {
+            pointer-events: auto !important;
+            position: relative;
+            z-index: 25;
+        }
+        
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 120px; /* min-height와 동일하게 제한 */
+            cursor: pointer;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            pointer-events: auto;
+        }
+        
+        .file-upload-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 120px;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            background-color: #f9fafb;
+            color: #6b7280;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .file-upload-label:hover {
+            border-color: #333;
+            background-color: #f3f4f6;
+            color: #333;
+        }
+        
+        .upload-icon {
+            width: 2rem;
+            height: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .image-preview-container {
+            position: relative;
+            margin-top: 1rem;
+            display: inline-block;
+            z-index: 15;
+            pointer-events: auto;
+        }
+        
+        .preview-image {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .remove-preview-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            z-index: 20;
+            pointer-events: auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .remove-preview-btn:hover {
+            background-color: #dc2626;
+        }
+        
+        .multiple-images-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .multiple-image-item {
+            position: relative;
+            display: inline-block;
+            z-index: 15;
+            pointer-events: auto;
+        }
+        
+        .multiple-preview-image {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .drag-over {
+            border-color: #333 !important;
+            background-color: #f0f9ff !important;
+        }
+        
+        /* Upload Modal Styles */
+        .upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .upload-modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            z-index: 1001;
+        }
+        
+        .upload-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        
+        .upload-modal-body {
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .upload-modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+        
+        .upload-progress-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        
+        .upload-progress-fill {
+            height: 100%;
+            background-color: #10b981;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .upload-progress-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .upload-file-list {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1rem;
+            background-color: #f9fafb;
+        }
+        
+        .upload-file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .upload-file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .upload-file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .upload-file-icon {
+            width: 2rem;
+            height: 2rem;
+            background-color: #10b981;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .upload-file-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .upload-file-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .upload-file-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .upload-file-status {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .upload-file-status.ready {
+            color: #059669;
+        }
+        
+        .upload-file-status.uploading {
+            color: #d97706;
+        }
+        
+        .upload-file-status.completed {
+            color: #10b981;
+        }
+        
+        .upload-file-status.error {
+            color: #dc2626;
+        }
+        
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        .form-buttons {
+            position: relative;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Portfolio Admin</h1>
+                <p class="text-gray-600 mt-2">포트폴리오 작품을 관리하고 편집하세요</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="index.html" class="btn-secondary">사이트 보기</a>
+                <button onclick="showAddForm()" class="btn-primary">새 작품 추가</button>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alert-container"></div>
+
+        <!-- Add/Edit Form -->
+        <div id="portfolio-form" class="form-section p-6 mb-8 hidden">
+            <h2 id="form-title" class="text-2xl font-semibold mb-6">새 포트폴리오 추가</h2>
+            
+            <form id="portfolio-edit-form">
+                <input type="hidden" id="portfolio-id" value="">
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 제목</label>
+                            <input type="text" id="portfolio-title" class="form-input" placeholder="작품 제목을 입력하세요" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">썸네일 이미지</label>
+                            <div class="file-upload-container">
+                                <input type="file" id="thumbnail-file" accept="image/*" class="file-input" onchange="previewThumbnail(this)">
+                                <label for="thumbnail-file" class="file-upload-label">
+                                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    <span>이미지를 선택하거나 드래그하세요</span>
+                                </label>
+                                <div id="thumbnail-preview" class="image-preview-container hidden">
+                                    <img id="thumbnail-preview-img" class="preview-image" alt="Thumbnail preview">
+                                    <button type="button" class="remove-preview-btn" onclick="removeThumbnailPreview()">×</button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="portfolio-thumbnail" value="">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명</label>
+                            <textarea id="portfolio-description" class="form-textarea" placeholder="작품에 대한 상세한 설명을 입력하세요" required></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트 타입</label>
+                            <input type="text" id="portfolio-project" class="form-input" placeholder="Branding, Package design" required>
+                            <small class="text-gray-500">쉼표로 구분하여 입력하세요</small>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">클라이언트</label>
+                            <input type="text" id="portfolio-client" class="form-input" placeholder="클라이언트명" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
+                            <input type="text" id="portfolio-date" class="form-input" placeholder="Feb, 2022" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">상세 이미지</label>
+                            <div class="multiple-file-upload-container">
+                                <input type="file" id="detail-images-file" accept="image/*" multiple class="file-input" onchange="previewDetailImages(this)">
+                                <label for="detail-images-file" class="file-upload-label">
+                                    <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                    </svg>
+                                    <span>이미지들을 선택하거나 드래그하세요 (여러 개 선택 가능)</span>
+                                </label>
+                                <div id="detail-images-preview" class="multiple-images-preview-container">
+                                    <!-- 미리보기 이미지들이 여기에 표시됩니다 -->
+                                </div>
+                            </div>
+                            <input type="hidden" id="portfolio-images" value="">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3 mt-6 form-buttons">
+                    <button type="button" onclick="hideForm()" class="btn-secondary">취소</button>
+                    <button type="submit" class="btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Portfolio List -->
+        <div class="form-section p-6">
+            <h2 class="text-2xl font-semibold mb-6">포트폴리오 목록</h2>
+            <div id="portfolio-list" class="portfolio-grid">
+                <!-- Portfolio items will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Progress Modal -->
+    <div id="upload-modal" class="upload-modal hidden">
+        <div class="upload-modal-content">
+            <div class="upload-modal-header">
+                <h3 class="text-lg font-semibold">파일 업로드 진행중</h3>
+            </div>
+            <div class="upload-modal-body">
+                <div class="upload-progress-container">
+                    <div class="upload-progress-bar">
+                        <div id="upload-progress-fill" class="upload-progress-fill"></div>
+                    </div>
+                    <div id="upload-progress-text" class="upload-progress-text">업로드 준비중...</div>
+                </div>
+                <div id="upload-file-list" class="upload-file-list">
+                    <!-- 업로드할 파일 목록이 여기에 표시됩니다 -->
+                </div>
+            </div>
+            <div class="upload-modal-footer">
+                <button type="button" id="upload-cancel-btn" class="btn-secondary">취소</button>
+                <button type="button" id="upload-confirm-btn" class="btn-primary" disabled>저장</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Backdrop -->
+    <div id="modal-backdrop" class="modal-backdrop hidden"></div>
+
+    <script src="admin.js"></script>
+    <script>
+        // 전역 함수들을 window 객체에 명시적으로 바인딩
+        window.showAddForm = function() {
+            if (window.portfolioManager) {
+                window.portfolioManager.showAddForm();
+            } else {
+                console.error('portfolioManager not initialized');
+            }
+        };
+        
+        window.hideForm = function() {
+            if (window.portfolioManager) {
+                window.portfolioManager.hideForm();
+            } else {
+                console.error('portfolioManager not initialized');
+            }
+        };
+        
+        // portfolioManager를 전역으로 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.portfolioManager) {
+                window.portfolioManager = new PortfolioManager();
+            }
+        });
+    </script>
+</body>
+</html>

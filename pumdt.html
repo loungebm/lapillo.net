@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUMDT Korean medicine clinic - lapillo</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="studio-lapillo.css">
+</head>
+<body class="bg-white font-sans">
+    <!-- Header -->
+    <header class="bg-white">
+        <div class="header-container">
+            <div class="flex justify-between items-center h-20">
+                <!-- Mobile Hamburger Menu -->
+                <div class="mobile-hamburger md:hidden">
+                    <button class="hamburger-button" id="hamburger-btn">
+                        <svg class="hamburger-icon w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path class="hamburger-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path class="close-lines" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" style="display: none;"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Desktop Left side: Logo and Navigation -->
+                <div class="hidden md:flex items-center space-x-12">
+                    <!-- Logo -->
+                    <div class="flex-shrink-0">
+                        <a href="index.html">
+                            <img src="./img/lapillo_logo_web.png" alt="lapillo" style="height: 6rem;" class="w-auto logo-desktop">
+                        </a>
+                    </div>
+                    
+                    <!-- Navigation Menu -->
+                    <nav class="flex space-x-8">
+                        <a href="index.html#design" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Design</a>
+                        <a href="index.html#artwork" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Artwork</a>
+                        <a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>
+                        <a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>
+                    </nav>
+                </div>
+
+                <!-- Mobile Logo (centered) -->
+                <div class="mobile-logo md:hidden flex-1 flex justify-center">
+                    <a href="index.html">
+                        <img src="./img/lapillo_logo_web.png" alt="lapillo" class="logo-mobile">
+                    </a>
+                </div>
+                
+                <!-- Desktop Right side: Instagram Icon -->
+                <div class="hidden md:flex items-center">
+                    <a href="http://instagram.com/studio_lapillo/" target="_blank" class="text-gray-500 hover:text-gray-700 transition-colors duration-200">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Mobile Spacer (to balance hamburger) -->
+                <div class="mobile-spacer md:hidden w-6"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobile-menu">
+        <div class="mobile-menu-content">
+            <nav class="mobile-nav">
+                <a href="index.html#design" class="mobile-nav-link">Design</a>
+                <a href="index.html#artwork" class="mobile-nav-link">Artwork</a>
+                <a href="index.html#about" class="mobile-nav-link">About</a>
+                <a href="index.html#contact" class="mobile-nav-link">Contact</a>
+                <div class="mobile-instagram-wrapper">
+                <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                    </svg>
+                </a>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="py-6">
+        <div class="project-detail-wrapper">
+            <!-- Title Section - 1 Column -->
+            <div class="project-title-section">
+                <h1 class="project-title">품듯한의원</h1>
+            </div>
+            
+            <!-- Text Section - 2 Columns -->
+            <div class="project-text-section">
+                <!-- Left Column -->
+                <div class="project-text-left">
+                    <div class="project-description">
+                        <p>제주시 소재, <품듯한의원> 을 위한 브랜드 디자인 프로젝트. ‘나 스스로를 사려깊게' 라는 타이틀로 일방적 서비스 제공이 아닌 편안한 소통, 환자 스스로 좋은 습관을 찾도록 돕는 의료 서비스가 목적이다.</p>
+                        <p>양팔을 벌려 지친 마음까지 품어주는 사람의 형상, 한의원을 통해 상승하는 신체 에너지를 표현하는 곡선 그래픽이 특징이다. 패키지의 색감 및 소재 또한 긴장감 없이 편안한 느낌을 받을 수 있도록 선별되었다. </p>
+                    </div>
+                </div>
+                
+                 <!-- Right Column -->
+                 <div class="project-text-right">
+                     <div class="project-info">
+                         <p class="project-meta"><strong>Project</strong> | <a href="#" class="project-link">Branding</a>, <a href="#" class="project-link">Package design</a></p>
+                         <p class="project-meta"><strong>Client</strong> | PUMDT Korean medicine clinic</p>
+                         <p class="project-meta"><strong>Feb, 2022</strong></p>
+                     </div>
+                 </div>
+            </div>
+
+            <!-- Images Section - 1 Column -->
+            <div class="project-images-section">
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_1842.jpg" alt="PUMDT Project Image 1">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_1855.jpg" alt="PUMDT Project Image 2">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_1962.jpg" alt="PUMDT Project Image 3">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_1964.jpg" alt="PUMDT Project Image 4">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_2066.jpg" alt="PUMDT Project Image 5">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3092.jpg" alt="PUMDT Project Image 6">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3094.jpg" alt="PUMDT Project Image 7">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3109.jpg" alt="PUMDT Project Image 8">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3155.jpg" alt="PUMDT Project Image 9">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3373.jpg" alt="PUMDT Project Image 10">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3391.jpg" alt="PUMDT Project Image 11">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3416.jpg" alt="PUMDT Project Image 12">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_3440.jpg" alt="PUMDT Project Image 13">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_9696.jpg" alt="PUMDT Project Image 14">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_9721.jpg" alt="PUMDT Project Image 15">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_9729.jpg" alt="PUMDT Project Image 16">
+                </div>
+                <div class="project-image">
+                    <img src="./img/design/pumdt/IMG_9746.jpg" alt="PUMDT Project Image 17">
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white py-12">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <!-- Left Column -->
+                <div class="footer-column">
+                    <p class="footer-text">Lapillo </p>
+                    <p class="footer-text">studio.lapillo@gmail.com</p>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="footer-column">
+                    <p class="footer-text">&nbsp;</p>
+                    <p class="footer-text">&copy; 2025 Lapillo. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerLines = document.querySelector('.hamburger-lines');
+            const closeLines = document.querySelector('.close-lines');
+            
+            let isOpen = false;
+
+            function toggleMenu() {
+                isOpen = !isOpen;
+                console.log('Menu toggle:', isOpen);
+                
+                if (isOpen) {
+                    // 메뉴 열기
+                    mobileMenu.style.display = 'flex';
+                    mobileMenu.style.position = 'fixed';
+                    mobileMenu.style.top = '0';
+                    mobileMenu.style.left = '0';
+                    mobileMenu.style.width = '100%';
+                    mobileMenu.style.height = '100vh';
+                    mobileMenu.style.background = 'white';
+                    mobileMenu.style.zIndex = '9999';
+                    mobileMenu.style.flexDirection = 'column';
+                    mobileMenu.style.justifyContent = 'center';
+                    mobileMenu.style.alignItems = 'center';
+                    mobileMenu.style.gap = '3rem';
+                    
+                    // X 버튼 추가
+                    if (!document.getElementById('mobile-close-btn')) {
+                        const closeBtn = document.createElement('button');
+                        closeBtn.id = 'mobile-close-btn';
+                        closeBtn.innerHTML = '<svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                        closeBtn.style.cssText = 'position: absolute; top: 2rem; left: 2rem; background: none; border: none; cursor: pointer; padding: 0.5rem; z-index: 10000; color: #333;';
+                        closeBtn.addEventListener('click', toggleMenu);
+                        mobileMenu.appendChild(closeBtn);
+                    }
+                    
+                    // 메뉴 링크 폰트 사이즈 변경
+                    const menuLinks = mobileMenu.querySelectorAll('a');
+                    menuLinks.forEach(link => {
+                        if (!link.classList.contains('mobile-instagram')) {
+                            link.style.fontSize = '1.8rem';
+                        }
+                    });
+                    
+                    hamburgerLines.style.display = 'none';
+                    closeLines.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    // 메뉴 닫기
+                    mobileMenu.style.display = 'none';
+                    
+                    // X 버튼 제거
+                    const closeBtn = document.getElementById('mobile-close-btn');
+                    if (closeBtn) {
+                        closeBtn.remove();
+                    }
+                    
+                    hamburgerLines.style.display = 'block';
+                    closeLines.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            }
+
+            // 햄버거 버튼 클릭
+            hamburger.addEventListener('click', toggleMenu);
+
+            // 메뉴 링크 클릭 시 메뉴 닫기
+            const menuLinks = mobileMenu.querySelectorAll('a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isOpen) {
+                        toggleMenu();
+                    }
+                });
+            });
+
+            // 화면 크기 변경 시 메뉴 닫기
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768 && isOpen) {
+                    toggleMenu();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
