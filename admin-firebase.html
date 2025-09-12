@@ -25,7 +25,7 @@
         .admin-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 0 2rem 2rem 2rem;
         }
         
         .portfolio-card {
@@ -284,14 +284,21 @@
             border: 1px solid #fecaca;
         }
         
-        /* 드래그 앤 드롭 스타일 */
+        /* 이미지 순서 관리 스타일 (인스타그램 스타일) */
         .sortable-images {
             min-height: 120px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 1rem;
         }
         
         .multiple-image-item {
-            cursor: grab;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
         }
         
         .multiple-image-item:hover {
@@ -299,32 +306,154 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
-        .multiple-image-item.dragging {
-            opacity: 0.5;
-            transform: rotate(5deg);
-            cursor: grabbing;
+        .multiple-image-item.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
         
-        .multiple-image-item.drag-over {
-            transform: translateX(10px);
-            border: 2px dashed #333;
+        .multiple-image-item.unselected {
+            opacity: 0.6;
         }
         
         .image-order-number {
             position: absolute;
-            top: -8px;
-            left: -8px;
-            width: 24px;
-            height: 24px;
-            background: #333;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.7);
             color: white;
             border-radius: 50%;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 25;
+            z-index: 10;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .image-order-number.selected {
+            background: #3b82f6;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .image-order-number:hover {
+            background: #3b82f6;
+            transform: scale(1.1);
+        }
+        
+        .image-selection-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+        
+        .selection-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .control-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* 헤더 고정 스타일 */
+        .admin-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 50;
+            padding: 2rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .admin-header .flex {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+        }
+        
+        .admin-header-left {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .admin-header-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: nowrap;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            white-space: nowrap;
+        }
+        
+        .admin-header p {
+            color: #6b7280;
+            margin: 0.5rem 0 0 0;
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header {
+                padding: 1rem 0;
+            }
+            
+            .admin-header .flex {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch !important;
+            }
+            
+            .admin-header-right {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+            
+            .admin-header h1 {
+                font-size: 1.5rem;
+                text-align: center;
+            }
+            
+            .admin-header p {
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -339,18 +468,20 @@
 
     <div id="admin-content" class="admin-container" style="display: none;">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Portfolio Admin (Firebase)</h1>
-                <p class="text-gray-600 mt-2">실시간 데이터베이스로 포트폴리오를 관리하세요</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="user-email" class="text-sm text-gray-500 mr-4"></span>
-                <a href="index.html" class="btn-secondary">사이트 보기</a>
-                <button onclick="showAddForm()" class="btn-primary">새 작품 추가</button>
-                <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
-                    로그아웃
-                </button>
+        <div class="admin-header">
+            <div class="flex">
+                <div class="admin-header-left">
+                    <h1>Portfolio Admin (Firebase)</h1>
+                    <p>실시간 데이터베이스로 포트폴리오를 관리하세요</p>
+                </div>
+                <div class="admin-header-right">
+                    <span id="user-email" class="text-sm text-gray-500"></span>
+                    <a href="index.html" class="btn-secondary">사이트 보기</a>
+                    <button onclick="showAddForm()" class="btn-primary">새 작품 추가</button>
+                    <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors">
+                        로그아웃
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -440,11 +571,19 @@
                                     <span>이미지들을 선택하거나 드래그하세요 (여러 개 선택 가능)</span>
                                     <small class="text-gray-500">Firebase Storage에 자동 업로드됩니다</small>
                                 </label>
-                                <div id="detail-images-preview" class="multiple-images-preview-container sortable-images">
+                                <div id="detail-images-preview" class="sortable-images">
                                     <!-- 미리보기 이미지들이 여기에 표시됩니다 -->
                                 </div>
-                                <div class="text-sm text-gray-500 mt-2">
-                                    💡 이미지를 드래그해서 순서를 변경할 수 있습니다
+                                <div id="image-selection-info" class="image-selection-info hidden">
+                                    <div class="flex items-center justify-between">
+                                        <span id="selection-status">📷 이미지를 클릭하여 순서를 설정하세요</span>
+                                        <span id="selected-count" class="font-medium">0개 선택됨</span>
+                                    </div>
+                                    <div class="selection-controls">
+                                        <button type="button" class="control-btn" onclick="clearSelection()">선택 해제</button>
+                                        <button type="button" class="control-btn" onclick="reverseOrder()">순서 뒤집기</button>
+                                        <button type="button" class="control-btn" onclick="resetOrder()">기본 순서</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

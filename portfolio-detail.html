@@ -436,11 +436,11 @@
             document.getElementById('portfolio-client').textContent = portfolio.client || '';
             document.getElementById('portfolio-date').textContent = portfolio.date || '';
             
-            // 설명 (한글/영문 구분하여 표시)
+            // 설명 (한글만 표시, 영문은 DB에만 저장)
             const descriptionDiv = document.getElementById('portfolio-description');
             let descriptionHtml = '';
 
-            // 한글 설명 (기본)
+            // 한글 설명만 표시
             if (portfolio.koreanDescription || portfolio.description) {
                 const koreanDesc = portfolio.koreanDescription || portfolio.description;
                 const koreanParagraphs = koreanDesc.split('\n\n').filter(p => p.trim()).map(paragraph => 
@@ -449,15 +449,8 @@
                 descriptionHtml += koreanParagraphs;
             }
 
-            // 영문 설명 (추가)
-            if (portfolio.englishDescription) {
-                descriptionHtml += `<div class="mt-6 pt-6 border-t border-gray-200">`;
-                const englishParagraphs = portfolio.englishDescription.split('\n\n').filter(p => p.trim()).map(paragraph => 
-                    `<p class="text-gray-700">${paragraph.replace(/\n/g, '<br>')}</p>`
-                ).join('');
-                descriptionHtml += englishParagraphs;
-                descriptionHtml += `</div>`;
-            }
+            // 영문 설명은 표시하지 않음 (DB에만 저장)
+            // if (portfolio.englishDescription) { ... } - 주석 처리
 
             descriptionDiv.innerHTML = descriptionHtml;
 
