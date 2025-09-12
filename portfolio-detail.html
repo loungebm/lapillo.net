@@ -329,25 +329,19 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white py-16 border-t border-gray-100">
+    <footer class="bg-white py-12">
         <div class="footer-container">
-            <div class="footer-content">
-                <!-- Footer Left: Studio Info -->
-                <div class="footer-left">
-                    <div class="footer-logo">
-                        <a href="index.html">
-                            <img src="./img/lapillo_logo_web.png" alt="lapillo" class="footer-logo-img">
-                        </a>
-                    </div>
-                    <div class="footer-info">
-                        <p class="footer-studio-name">Lapillo</p>
-                        <p class="footer-email">studio.lapillo@gmail.com</p>
-                    </div>
+            <div class="footer-grid">
+                <!-- Left Column -->
+                <div class="footer-column">
+                    <p class="footer-text">Lapillo </p>
+                    <p class="footer-text">studio.lapillo@gmail.com</p>
                 </div>
                 
-                <!-- Footer Right: Copyright -->
-                <div class="footer-right">
-                    <p class="footer-copyright">© 2025 Lapillo. All rights reserved.</p>
+                <!-- Right Column -->
+                <div class="footer-column">
+                    <p class="footer-text">&nbsp;</p>
+                    <p class="footer-text">&copy; 2025 Lapillo. All rights reserved.</p>
                 </div>
             </div>
         </div>
@@ -434,10 +428,10 @@
             document.getElementById('portfolio-content').classList.remove('hidden');
 
             // 페이지 제목 업데이트
-            document.title = `${portfolio.title} - lapillo`;
+            document.title = `${portfolio.koreanTitle || portfolio.englishTitle || portfolio.title} - lapillo`;
 
             // 데이터 채우기
-            document.getElementById('portfolio-title').textContent = portfolio.title;
+            document.getElementById('portfolio-title').textContent = portfolio.koreanTitle || portfolio.englishTitle || portfolio.title;
             document.getElementById('portfolio-project').textContent = portfolio.project || '';
             document.getElementById('portfolio-client').textContent = portfolio.client || '';
             document.getElementById('portfolio-date').textContent = portfolio.date || '';
@@ -454,7 +448,7 @@
             if (portfolio.images && portfolio.images.length > 0) {
                 galleryDiv.innerHTML = portfolio.images.map((imageUrl, index) => `
                     <div class="project-image">
-                        <img src="${imageUrl}" alt="${portfolio.title} 상세 이미지 ${index + 1}" 
+                        <img src="${imageUrl}" alt="${portfolio.koreanTitle || portfolio.englishTitle || portfolio.title} 상세 이미지 ${index + 1}" 
                              onclick="openImageModal('${imageUrl}')"
                              style="cursor: pointer;">
                     </div>
@@ -477,7 +471,7 @@
             // 이전 포트폴리오
             if (currentPortfolioIndex > 0) {
                 const prevPortfolio = allPortfolios[currentPortfolioIndex - 1];
-                prevTitle.textContent = prevPortfolio.title;
+                prevTitle.textContent = prevPortfolio.englishTitle || prevPortfolio.title;
                 prevNav.style.display = 'block';
             } else {
                 prevNav.style.display = 'none';
@@ -486,7 +480,7 @@
             // 다음 포트폴리오
             if (currentPortfolioIndex < allPortfolios.length - 1) {
                 const nextPortfolio = allPortfolios[currentPortfolioIndex + 1];
-                nextTitle.textContent = nextPortfolio.title;
+                nextTitle.textContent = nextPortfolio.englishTitle || nextPortfolio.title;
                 nextNav.style.display = 'block';
             } else {
                 nextNav.style.display = 'none';

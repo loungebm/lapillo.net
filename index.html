@@ -627,11 +627,11 @@
                         gridItem.innerHTML = `
                             <div class="grid-image">
                                 <div class="grid-image-inner-wrapper">
-                                    <img src="${portfolio.thumbnail}" alt="${portfolio.title}" class="portfolio-image">
+                                    <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="portfolio-image">
                                 </div>
                             </div>
                             <div class="portfolio-text">
-                                <h3 class="portfolio-title">${portfolio.title}</h3>
+                                <h3 class="portfolio-title">${portfolio.englishTitle || portfolio.title}</h3>
                             </div>
                         `;
                         

@@ -43,7 +43,9 @@ class PortfolioManager {
     getDefaultPortfolio() {
         return [{
             id: 'pumdt',
-            title: '품듯한의원',
+            title: '품듯한의원', // 기존 호환성
+            englishTitle: '품듯한의원',
+            koreanTitle: '품듯한의원 - 브랜드 디자인',
             thumbnail: './img/IMG_9699.jpg',
             description: '제주시 소재, <품듯한의원> 을 위한 브랜드 디자인 프로젝트. \'나 스스로를 사려깊게\' 라는 타이틀로 일방적 서비스 제공이 아닌 편안한 소통, 환자 스스로 좋은 습관을 찾도록 돕는 의료 서비스가 목적이다.\n\n양팔을 벌려 지친 마음까지 품어주는 사람의 형상, 한의원을 통해 상승하는 신체 에너지를 표현하는 곡선 그래픽이 특징이다. 패키지의 색감 및 소재 또한 긴장감 없이 편안한 느낌을 받을 수 있도록 선별되었다.',
             project: 'Branding,Package design',
@@ -113,9 +115,10 @@ class PortfolioManager {
         container.innerHTML = this.portfolios.map(portfolio => `
             <div class="portfolio-card p-6">
                 <div class="flex items-start gap-4">
-                    <img src="${portfolio.thumbnail}" alt="${portfolio.title}" class="image-preview">
+                    <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="image-preview">
                     <div class="flex-1">
-                        <h3 class="text-xl font-semibold mb-2">${portfolio.title}</h3>
+                        <h3 class="text-xl font-semibold mb-2">${portfolio.englishTitle || portfolio.title}</h3>
+                        ${portfolio.koreanTitle ? `<p class="text-lg text-gray-700 mb-2">${portfolio.koreanTitle}</p>` : ''}
                         <p class="text-gray-600 text-sm mb-3 line-clamp-2">${portfolio.description.substring(0, 100)}...</p>
                         <div class="text-sm text-gray-500 mb-4">
                             <p><strong>Project:</strong> ${portfolio.project}</p>
@@ -139,7 +142,7 @@ class PortfolioManager {
         this.clearForm();
         document.getElementById('form-title').textContent = '새 포트폴리오 추가';
         document.getElementById('portfolio-form').classList.remove('hidden');
-        document.getElementById('portfolio-title').focus();
+        document.getElementById('portfolio-english-title').focus();
     }
 
     // 포트폴리오 편집
@@ -151,13 +154,14 @@ class PortfolioManager {
         this.fillForm(portfolio);
         document.getElementById('form-title').textContent = '포트폴리오 편집';
         document.getElementById('portfolio-form').classList.remove('hidden');
-        document.getElementById('portfolio-title').focus();
+        document.getElementById('portfolio-english-title').focus();
     }
 
     // 폼에 데이터 채우기
     fillForm(portfolio) {
         document.getElementById('portfolio-id').value = portfolio.id;
-        document.getElementById('portfolio-title').value = portfolio.title;
+        document.getElementById('portfolio-english-title').value = portfolio.englishTitle || portfolio.title || '';
+        document.getElementById('portfolio-korean-title').value = portfolio.koreanTitle || '';
         document.getElementById('portfolio-description').value = portfolio.description;
         document.getElementById('portfolio-project').value = portfolio.project;
         document.getElementById('portfolio-client').value = portfolio.client;
@@ -203,14 +207,15 @@ class PortfolioManager {
         }
         
         // 필수 필드 검증
-        const title = document.getElementById('portfolio-title').value;
+        const englishTitle = document.getElementById('portfolio-english-title').value;
+        const koreanTitle = document.getElementById('portfolio-korean-title').value;
         const description = document.getElementById('portfolio-description').value;
         const project = document.getElementById('portfolio-project').value;
         const client = document.getElementById('portfolio-client').value;
         const date = document.getElementById('portfolio-date').value;
         
-        if (!title || !description || !project || !client || !date) {
-            this.showAlert('모든 필수 필드를 입력해주세요.', 'error');
+        if (!englishTitle || !description || !project || !client || !date) {
+            this.showAlert('모든 필수 필드를 입력해주세요. (영문 제목은 필수입니다)', 'error');
             return;
         }
         
@@ -257,8 +262,10 @@ class PortfolioManager {
             }
             
             const portfolioData = {
-                id: this.currentEditId || this.generateId(title),
-                title,
+                id: this.currentEditId || this.generateId(englishTitle),
+                englishTitle,
+                koreanTitle,
+                title: englishTitle, // 기존 호환성을 위해 유지
                 description,
                 project,
                 client,
