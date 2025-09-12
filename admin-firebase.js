@@ -135,6 +135,22 @@ class PortfolioManager {
         }
     }
 
+    // 파일 입력 필드 초기화 (중복 업로드 방지)
+    clearFileInputs() {
+        const thumbnailFile = document.getElementById('thumbnail-file');
+        const detailImagesFile = document.getElementById('detail-images-file');
+        
+        if (thumbnailFile) {
+            thumbnailFile.value = '';
+            console.log('🧹 썸네일 파일 입력 초기화');
+        }
+        
+        if (detailImagesFile) {
+            detailImagesFile.value = '';
+            console.log('🧹 상세 이미지 파일 입력 초기화');
+        }
+    }
+
     // 포트폴리오 목록 렌더링
     renderPortfolios() {
         const container = document.getElementById('portfolio-list');
@@ -291,6 +307,9 @@ class PortfolioManager {
             portfolioId.value = '';
         }
         
+        // 파일 입력 필드도 명시적으로 초기화
+        this.clearFileInputs();
+        
         this.clearImagePreviews();
     }
 
@@ -405,15 +424,23 @@ class PortfolioManager {
         this.showSaveLoadingModal();
             
             let thumbnailUrl = existingThumbnail;
-            let imageUrls = [...existingImages];
+            let imageUrls = [...existingImages]; // 기존 이미지 복사
             
             // 포트폴리오 ID 생성 (새로운 경우) 또는 기존 ID 사용
             const portfolioId = this.currentEditId || this.generateId(englishTitle);
             
+            console.log('📸 이미지 처리 시작:', {
+                기존이미지개수: existingImages.length,
+                새썸네일파일: thumbnailFile ? thumbnailFile.name : '없음',
+                새상세이미지파일수: detailFiles.length
+            });
+            
             // 썸네일 업로드 (포트폴리오별 폴더)
             if (thumbnailFile) {
+                console.log('📸 썸네일 업로드 시작:', thumbnailFile.name);
                 const thumbnailResult = await this.firebaseService.uploadImage(thumbnailFile, `portfolios/${portfolioId}/thumbnails`);
                 thumbnailUrl = thumbnailResult.url;
+                console.log('✅ 썸네일 업로드 완료:', thumbnailUrl);
                 this.showAlert('썸네일 업로드 완료', 'success');
             }
             
@@ -424,15 +451,22 @@ class PortfolioManager {
                 return;
             }
             
-            // 상세 이미지들 업로드 (포트폴리오별 폴더)
+            // 상세 이미지들 업로드 (새로운 파일이 있을 때만)
             if (detailFiles.length > 0) {
+                console.log('📸 상세 이미지 업로드 시작:', detailFiles.length, '개');
                 const uploadPromises = detailFiles.map(file => 
                     this.firebaseService.uploadImage(file, `portfolios/${portfolioId}/details`)
                 );
                 const uploadResults = await Promise.all(uploadPromises);
                 const newImageUrls = uploadResults.map(result => result.url);
+                
+                // 새로운 파일이 업로드되었다면 기존 이미지에 추가
                 imageUrls = [...imageUrls, ...newImageUrls];
+                console.log('✅ 상세 이미지 업로드 완료:', newImageUrls.length, '개 추가');
+                console.log('📸 최종 이미지 배열:', imageUrls.length, '개');
                 this.showAlert(`${detailFiles.length}개 이미지 업로드 완료`, 'success');
+            } else {
+                console.log('📸 새로운 상세 이미지 없음, 기존 이미지만 사용:', imageUrls.length, '개');
             }
             
             const portfolioData = {
@@ -471,6 +505,9 @@ class PortfolioManager {
             
             // 로딩 모달 숨김
             this.hideSaveLoadingModal();
+            
+            // 파일 입력 필드 초기화 (중복 업로드 방지)
+            this.clearFileInputs();
             
             // 편집 모드였다면 업데이트된 데이터로 폼을 다시 채움
             if (this.currentEditId) {
