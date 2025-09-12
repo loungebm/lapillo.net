@@ -919,7 +919,7 @@ window.clearSelection = function() {
     console.log('🔄 선택 초기화됨');
 };
 
-window.reverseOrder = function() {
+window.reverseOrder = async function() {
     if (imageOrderSelection.selectedImages.length < 2) {
         alert('순서를 뒤집으려면 최소 2개의 이미지를 선택하세요.');
         return;
@@ -927,11 +927,11 @@ window.reverseOrder = function() {
     
     imageOrderSelection.selectionOrder.reverse();
     updateImageVisuals();
-    applyNewOrder();
+    await applyNewOrder();
     console.log('🔄 선택된 이미지 순서 뒤집기 적용');
 };
 
-window.resetOrder = function() {
+window.resetOrder = async function() {
     const container = document.getElementById('detail-images-preview');
     const items = Array.from(container.children);
     
@@ -954,45 +954,114 @@ window.resetOrder = function() {
     });
     
     clearSelection();
-    updatePortfolioImageOrder();
+    await updatePortfolioImageOrder();
     console.log('🔄 기본 순서로 복원됨');
 };
 
-// 새로운 순서 적용
-function applyNewOrder() {
+// 새로운 순서 적용 (간단한 버전)
+async function applyNewOrder() {
     if (imageOrderSelection.selectedImages.length === 0) return;
     
     const container = document.getElementById('detail-images-preview');
     const items = Array.from(container.children);
     
-    // 선택된 이미지들을 새로운 순서로 재배치
-    imageOrderSelection.selectionOrder.forEach((originalIndex, newOrderIndex) => {
-        const targetIndex = imageOrderSelection.selectedImages[newOrderIndex];
-        if (targetIndex !== undefined && items[originalIndex]) {
-            // 실제 DOM 위치 변경은 복잡하므로, 데이터만 업데이트
-            items[originalIndex].dataset.index = newOrderIndex;
-        }
+    console.log('🔄 순서 변경 시작:', {
+        selectedImages: imageOrderSelection.selectedImages,
+        selectionOrder: imageOrderSelection.selectionOrder,
+        totalItems: items.length
     });
     
-    updatePortfolioImageOrder();
+    // 모든 이미지 요소를 수집
+    const allItems = items.map((item, index) => ({
+        element: item,
+        originalIndex: index,
+        imageUrl: item.dataset.imageUrl,
+        isSelected: imageOrderSelection.selectedImages.includes(index)
+    }));
+    
+    // 선택된 이미지들을 선택 순서대로 재정렬
+    const selectedItems = imageOrderSelection.selectionOrder.map(originalIndex => 
+        allItems.find(item => item.originalIndex === originalIndex)
+    ).filter(item => item); // undefined 제거
+    
+    // 선택되지 않은 이미지들
+    const unselectedItems = allItems.filter(item => !item.isSelected);
+    
+    // 새로운 순서 생성: 선택된 이미지들을 처음 부분에 배치
+    const newOrderItems = [...selectedItems, ...unselectedItems];
+    
+    console.log('📋 새로운 순서:', newOrderItems.map(item => item.imageUrl?.substring(item.imageUrl.lastIndexOf('/') + 1)));
+    
+    // DOM 다시 구성
+    container.innerHTML = '';
+    newOrderItems.forEach((item, index) => {
+        container.appendChild(item.element);
+        
+        // 순서 번호 업데이트
+        const orderNumber = item.element.querySelector('.image-order-number');
+        if (orderNumber) {
+            orderNumber.textContent = index + 1;
+        }
+        item.element.dataset.index = index;
+    });
+    
+    await updatePortfolioImageOrder();
     clearSelection();
+    console.log('✅ 순서 변경 완료');
 }
 
-// 포트폴리오 이미지 순서 업데이트
-function updatePortfolioImageOrder() {
+// 포트폴리오 이미지 순서 업데이트 및 Firestore 저장
+async function updatePortfolioImageOrder() {
     const container = document.getElementById('detail-images-preview');
+    if (!container) {
+        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
+        return;
+    }
+    
     const items = Array.from(container.children);
     
     // 현재 DOM 순서대로 이미지 URL 배열 생성
     const newOrder = items.map(item => item.dataset.imageUrl).filter(url => url);
     
+    console.log('📋 이미지 순서 업데이트:', {
+        totalImages: newOrder.length,
+        imageFiles: newOrder.map(url => url.substring(url.lastIndexOf('/') + 1))
+    });
+    
     // 현재 편집 중인 포트폴리오의 이미지 순서 업데이트
     if (window.portfolioManager && window.portfolioManager.currentEditId) {
         const portfolio = window.portfolioManager.portfolios.find(p => p.id === window.portfolioManager.currentEditId);
-        if (portfolio && portfolio.images) {
+        if (portfolio) {
+            // 메모리상 데이터 업데이트
             portfolio.images = newOrder;
-            console.log('📋 포트폴리오 이미지 순서 업데이트:', newOrder);
+            
+            try {
+                // Firestore에 바로 저장
+                await window.portfolioManager.firebaseService.savePortfolio({
+                    ...portfolio,
+                    images: newOrder
+                });
+                
+                console.log('✅ 이미지 순서가 Firestore에 저장됨');
+                
+                // 성공 알림 (선택적)
+                if (window.portfolioManager.showAlert) {
+                    window.portfolioManager.showAlert('이미지 순서가 저장되었습니다.', 'success');
+                }
+                
+            } catch (error) {
+                console.error('❌ 이미지 순서 저장 실패:', error);
+                
+                // 에러 알림
+                if (window.portfolioManager.showAlert) {
+                    window.portfolioManager.showAlert('이미지 순서 저장에 실패했습니다: ' + error.message, 'error');
+                }
+            }
+        } else {
+            console.error('❌ 편집 중인 포트폴리오를 찾을 수 없음');
         }
+    } else {
+        console.error('❌ portfolioManager 또는 currentEditId가 없음');
     }
 }
 
