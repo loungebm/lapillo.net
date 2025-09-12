@@ -121,6 +121,11 @@ class PortfolioManager {
     renderPortfolios() {
         const container = document.getElementById('portfolio-list');
         
+        if (!container) {
+            console.error('⚠️ portfolio-list 컨테이너를 찾을 수 없습니다.');
+            return;
+        }
+        
         if (this.portfolios.length === 0) {
             container.innerHTML = '<p class="text-gray-500 text-center py-8">포트폴리오가 없습니다.</p>';
             return;
@@ -158,9 +163,20 @@ class PortfolioManager {
         console.log('➕ 새 포트폴리오 추가 모드');
         this.currentEditId = null;
         this.clearForm();
-        document.getElementById('form-title').textContent = '새 포트폴리오 추가';
-        document.getElementById('portfolio-form').classList.remove('hidden');
-        document.getElementById('portfolio-english-title').focus();
+        
+        const formTitle = document.getElementById('form-title');
+        const portfolioForm = document.getElementById('portfolio-form');
+        const englishTitleInput = document.getElementById('portfolio-english-title');
+        
+        if (formTitle) {
+            formTitle.textContent = '새 포트폴리오 추가';
+        }
+        if (portfolioForm) {
+            portfolioForm.classList.remove('hidden');
+        }
+        if (englishTitleInput) {
+            englishTitleInput.focus();
+        }
         
         // 이미지 선택 상태도 초기화
         if (typeof clearSelection === 'function') {
@@ -206,14 +222,25 @@ class PortfolioManager {
 
     // 폼에 데이터 채우기
     fillForm(portfolio) {
-        document.getElementById('portfolio-id').value = portfolio.id;
-        document.getElementById('portfolio-english-title').value = portfolio.englishTitle || portfolio.title || '';
-        document.getElementById('portfolio-korean-title').value = portfolio.koreanTitle || '';
-        document.getElementById('portfolio-korean-description').value = portfolio.koreanDescription || portfolio.description || '';
-        document.getElementById('portfolio-english-description').value = portfolio.englishDescription || '';
-        document.getElementById('portfolio-project').value = portfolio.project;
-        document.getElementById('portfolio-client').value = portfolio.client;
-        document.getElementById('portfolio-date').value = portfolio.date;
+        const elements = {
+            'portfolio-id': portfolio.id,
+            'portfolio-english-title': portfolio.englishTitle || portfolio.title || '',
+            'portfolio-korean-title': portfolio.koreanTitle || '',
+            'portfolio-korean-description': portfolio.koreanDescription || portfolio.description || '',
+            'portfolio-english-description': portfolio.englishDescription || '',
+            'portfolio-project': portfolio.project || '',
+            'portfolio-client': portfolio.client || '',
+            'portfolio-date': portfolio.date || ''
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value;
+            } else {
+                console.warn(`⚠️ 폼 요소를 찾을 수 없음: ${id}`);
+            }
+        });
         
         // 기존 이미지 미리보기 표시
         console.log('🖼️ 편집할 포트폴리오 이미지 정보:', {
@@ -233,8 +260,19 @@ class PortfolioManager {
 
     // 폼 초기화
     clearForm() {
-        document.getElementById('portfolio-edit-form').reset();
-        document.getElementById('portfolio-id').value = '';
+        const form = document.getElementById('portfolio-edit-form');
+        const portfolioId = document.getElementById('portfolio-id');
+        
+        if (form) {
+            form.reset();
+        } else {
+            console.warn('⚠️ 폼을 찾을 수 없음: portfolio-edit-form');
+        }
+        
+        if (portfolioId) {
+            portfolioId.value = '';
+        }
+        
         this.clearImagePreviews();
     }
 
@@ -247,7 +285,13 @@ class PortfolioManager {
             this.hideUploadModal();
         }
         
-        document.getElementById('portfolio-form').classList.add('hidden');
+        const portfolioForm = document.getElementById('portfolio-form');
+        if (portfolioForm) {
+            portfolioForm.classList.add('hidden');
+        } else {
+            console.warn('⚠️ 폼을 찾을 수 없음: portfolio-form');
+        }
+        
         this.currentEditId = null;
         this.clearForm();
     }
@@ -700,6 +744,30 @@ window.editPortfolioSafe = function(id) {
     console.log('🔧 portfolioManager 상태:', window.portfolioManager);
     console.log('🔧 editPortfolio 함수 존재:', typeof window.portfolioManager?.editPortfolio);
     
+    // ID 유효성 검사
+    if (!id) {
+        console.error('❌ 포트폴리오 ID가 없습니다:', id);
+        alert('포트폴리오 ID가 올바르지 않습니다.');
+        return;
+    }
+    
+    // DOM 요소들이 준비되었는지 확인
+    const requiredElements = ['portfolio-form', 'form-title', 'portfolio-english-title'];
+    const missingElements = requiredElements.filter(elementId => {
+        const element = document.getElementById(elementId);
+        if (!element) {
+            console.error(`❌ DOM 요소 없음: ${elementId}`);
+            return true;
+        }
+        return false;
+    });
+    
+    if (missingElements.length > 0) {
+        console.error('❌ 필요한 DOM 요소가 없습니다:', missingElements);
+        alert('페이지가 완전히 로드되지 않았습니다. 페이지를 새로고침해주세요.');
+        return;
+    }
+    
     if (window.portfolioManager && typeof window.portfolioManager.editPortfolio === 'function') {
         try {
             console.log('🔧 editPortfolio 함수 호출 시작');
@@ -930,12 +998,23 @@ function updatePortfolioImageOrder() {
 
 // 앱 초기화
 let portfolioManager;
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('🔄 DOM 로딩 완료, 앱 초기화 시작...');
+
+function initializeApp() {
+    console.log('🔄 앱 초기화 시작...');
+    
+    // 필수 DOM 요소들이 있는지 확인
+    const requiredElements = ['portfolio-list', 'portfolio-form', 'form-title', 'alert-container'];
+    const missingElements = requiredElements.filter(id => !document.getElementById(id));
+    
+    if (missingElements.length > 0) {
+        console.error('❌ 필수 DOM 요소가 없습니다:', missingElements);
+        setTimeout(initializeApp, 100); // 100ms 후 재시도
+        return;
+    }
     
     // Firebase 로드 확인 후 초기화
-    if (typeof firebase !== 'undefined') {
-        console.log('✅ Firebase 라이브러리 확인됨');
+    if (typeof firebase !== 'undefined' && window.firebaseService) {
+        console.log('✅ Firebase 라이브러리 및 서비스 확인됨');
         try {
             portfolioManager = new PortfolioManager();
             window.portfolioManager = portfolioManager;
@@ -947,12 +1026,26 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('❌ PortfolioManager 초기화 실패:', error);
-            document.getElementById('alert-container').innerHTML = 
-                '<div class="alert alert-error">시스템 초기화에 실패했습니다. 페이지를 새로고침해주세요.</div>';
+            const alertContainer = document.getElementById('alert-container');
+            if (alertContainer) {
+                alertContainer.innerHTML = 
+                    '<div class="alert alert-error">시스템 초기화에 실패했습니다. 페이지를 새로고침해주세요.</div>';
+            }
         }
     } else {
         console.error('❌ Firebase가 로드되지 않았습니다.');
-        document.getElementById('alert-container').innerHTML = 
-            '<div class="alert alert-error">Firebase 연결에 실패했습니다. 페이지를 새로고침해주세요.</div>';
+        const alertContainer = document.getElementById('alert-container');
+        if (alertContainer) {
+            alertContainer.innerHTML = 
+                '<div class="alert alert-error">Firebase 연결에 실패했습니다. 페이지를 새로고침해주세요.</div>';
+        }
+        // Firebase 로딩을 기다려서 재시도
+        setTimeout(initializeApp, 500);
     }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🔄 DOM 로딩 완료');
+    // 약간의 지연 후 초기화 (Firebase 로딩 대기)
+    setTimeout(initializeApp, 200);
 });
