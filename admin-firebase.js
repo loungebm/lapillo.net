@@ -278,8 +278,12 @@ class PortfolioManager {
 
     // 폼 숨기기
     hideForm() {
+        // 업로드 진행 중이고 실제로 파일 업로드가 있을 때만 확인창 표시
         if (this.uploadInProgress) {
-            if (!confirm('업로드가 진행 중입니다. 정말 취소하시겠습니까?')) {
+            const hasNewFiles = document.getElementById('thumbnail-file').files.length > 0 || 
+                               document.getElementById('detail-images-file').files.length > 0;
+            
+            if (hasNewFiles && !confirm('파일 업로드가 진행 중입니다. 정말 취소하시겠습니까?')) {
                 return;
             }
             this.hideUploadModal();
@@ -355,11 +359,25 @@ class PortfolioManager {
             const thumbnailFile = document.getElementById('thumbnail-file').files[0];
             const detailFiles = Array.from(document.getElementById('detail-images-file').files);
             
-            // 기존 이미지 URL들
+            // 기존 이미지 URL들 (DOM에서 현재 순서로 가져오기)
             const existingThumbnail = this.currentEditId ? 
                 this.portfolios.find(p => p.id === this.currentEditId)?.thumbnail : null;
-            const existingImages = this.currentEditId ? 
-                this.portfolios.find(p => p.id === this.currentEditId)?.images || [] : [];
+            
+            // 편집 모드에서는 DOM의 현재 순서를 사용
+            let existingImages = [];
+            if (this.currentEditId) {
+                const previewContainer = document.getElementById('detail-images-preview');
+                if (previewContainer && previewContainer.children.length > 0) {
+                    // DOM에서 현재 순서대로 이미지 URL 수집
+                    existingImages = Array.from(previewContainer.children)
+                        .map(item => item.dataset.imageUrl)
+                        .filter(url => url);
+                    console.log('📋 DOM에서 가져온 현재 이미지 순서:', existingImages.map(url => url.substring(url.lastIndexOf('/') + 1)));
+                } else {
+                    // DOM에 이미지가 없으면 기존 데이터 사용
+                    existingImages = this.portfolios.find(p => p.id === this.currentEditId)?.images || [];
+                }
+            }
             
             this.uploadInProgress = true;
             this.showAlert('업로드 중...', 'success');
