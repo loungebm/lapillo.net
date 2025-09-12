@@ -117,6 +117,24 @@ class PortfolioManager {
         this.setupModalEvents();
     }
 
+    // 로딩 모달 표시
+    showSaveLoadingModal() {
+        const modal = document.getElementById('save-loading-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            console.log('💾 저장 로딩 모달 표시');
+        }
+    }
+
+    // 로딩 모달 숨김
+    hideSaveLoadingModal() {
+        const modal = document.getElementById('save-loading-modal');
+        if (modal) {
+            modal.classList.add('hidden');
+            console.log('💾 저장 로딩 모달 숨김');
+        }
+    }
+
     // 포트폴리오 목록 렌더링
     renderPortfolios() {
         const container = document.getElementById('portfolio-list');
@@ -383,8 +401,8 @@ class PortfolioManager {
                 }
             }
             
-            this.uploadInProgress = true;
-            this.showAlert('업로드 중...', 'success');
+        this.uploadInProgress = true;
+        this.showSaveLoadingModal();
             
             let thumbnailUrl = existingThumbnail;
             let imageUrls = [...existingImages];
@@ -451,8 +469,34 @@ class PortfolioManager {
             await this.loadPortfolios();
             console.log('✅ 데이터 새로고침 완료');
             
-            this.hideForm();
-            this.showAlert('포트폴리오가 성공적으로 저장되었습니다!', 'success');
+            // 로딩 모달 숨김
+            this.hideSaveLoadingModal();
+            
+            // 편집 모드였다면 업데이트된 데이터로 폼을 다시 채움
+            if (this.currentEditId) {
+                const updatedPortfolio = this.portfolios.find(p => p.id === this.currentEditId);
+                if (updatedPortfolio) {
+                    console.log('🔄 편집 폼을 업데이트된 데이터로 새로고침');
+                    this.fillForm(updatedPortfolio);
+                    
+                    // 기존 이미지 미리보기 다시 표시 (새로운 순서 반영)
+                    if (updatedPortfolio.thumbnail) {
+                        this.showExistingThumbnail(updatedPortfolio.thumbnail);
+                    }
+                    if (updatedPortfolio.images && updatedPortfolio.images.length > 0) {
+                        this.showExistingDetailImages(updatedPortfolio.images);
+                    }
+                    
+                    this.showAlert('포트폴리오가 성공적으로 저장되었습니다! 변경사항이 반영되었습니다.', 'success');
+                } else {
+                    this.hideForm();
+                    this.showAlert('포트폴리오가 성공적으로 저장되었습니다!', 'success');
+                }
+            } else {
+                this.hideForm();
+                this.showAlert('포트폴리오가 성공적으로 저장되었습니다!', 'success');
+            }
+            
             console.log('✅ 저장 프로세스 완료');
             
         } catch (error) {
@@ -460,6 +504,10 @@ class PortfolioManager {
             console.error('💥 오류 스택:', error.stack);
             console.error('💥 오류 메시지:', error.message);
             console.error('💥 오류 타입:', typeof error);
+            
+            // 로딩 모달 숨김
+            this.hideSaveLoadingModal();
+            
             this.showAlert('저장 중 오류가 발생했습니다: ' + (error.message || error.toString()), 'error');
         } finally {
             this.uploadInProgress = false;
@@ -548,7 +596,9 @@ class PortfolioManager {
             previewContainer.appendChild(imageItem);
         });
         
+        // 이미지 순서 관리 시스템 초기화
         this.initializeImageOrdering();
+        console.log('🔄 이미지 순서 관리 시스템 재초기화 완료');
     }
 
     clearImagePreviews() {
