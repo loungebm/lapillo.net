@@ -283,6 +283,49 @@
             color: #991b1b;
             border: 1px solid #fecaca;
         }
+        
+        /* 드래그 앤 드롭 스타일 */
+        .sortable-images {
+            min-height: 120px;
+        }
+        
+        .multiple-image-item {
+            cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .multiple-image-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .multiple-image-item.dragging {
+            opacity: 0.5;
+            transform: rotate(5deg);
+            cursor: grabbing;
+        }
+        
+        .multiple-image-item.drag-over {
+            transform: translateX(10px);
+            border: 2px dashed #333;
+        }
+        
+        .image-order-number {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            width: 24px;
+            height: 24px;
+            background: #333;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 25;
+        }
     </style>
 </head>
 <body>
@@ -358,8 +401,13 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명</label>
-                            <textarea id="portfolio-description" class="form-textarea" placeholder="작품에 대한 상세한 설명을 입력하세요" required></textarea>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (한글) - 상세 페이지 기본</label>
+                            <textarea id="portfolio-korean-description" class="form-textarea" placeholder="프로젝트에 대한 한글 상세 설명" rows="4" required></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (영문) - 추가 설명</label>
+                            <textarea id="portfolio-english-description" class="form-textarea" placeholder="Detailed description of the project in English" rows="4"></textarea>
                         </div>
                     </div>
                     
@@ -392,8 +440,11 @@
                                     <span>이미지들을 선택하거나 드래그하세요 (여러 개 선택 가능)</span>
                                     <small class="text-gray-500">Firebase Storage에 자동 업로드됩니다</small>
                                 </label>
-                                <div id="detail-images-preview" class="multiple-images-preview-container">
+                                <div id="detail-images-preview" class="multiple-images-preview-container sortable-images">
                                     <!-- 미리보기 이미지들이 여기에 표시됩니다 -->
+                                </div>
+                                <div class="text-sm text-gray-500 mt-2">
+                                    💡 이미지를 드래그해서 순서를 변경할 수 있습니다
                                 </div>
                             </div>
                         </div>

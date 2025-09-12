@@ -44,10 +44,12 @@ class PortfolioManager {
         return [{
             id: 'pumdt',
             title: '품듯한의원', // 기존 호환성
-            englishTitle: '품듯한의원',
+            englishTitle: 'PUMDT Korean Medicine Clinic',
             koreanTitle: '품듯한의원 - 브랜드 디자인',
             thumbnail: './img/IMG_9699.jpg',
-            description: '제주시 소재, <품듯한의원> 을 위한 브랜드 디자인 프로젝트. \'나 스스로를 사려깊게\' 라는 타이틀로 일방적 서비스 제공이 아닌 편안한 소통, 환자 스스로 좋은 습관을 찾도록 돕는 의료 서비스가 목적이다.\n\n양팔을 벌려 지친 마음까지 품어주는 사람의 형상, 한의원을 통해 상승하는 신체 에너지를 표현하는 곡선 그래픽이 특징이다. 패키지의 색감 및 소재 또한 긴장감 없이 편안한 느낌을 받을 수 있도록 선별되었다.',
+            description: '제주시 소재, <품듯한의원> 을 위한 브랜드 디자인 프로젝트. \'나 스스로를 사려깊게\' 라는 타이틀로 일방적 서비스 제공이 아닌 편안한 소통, 환자 스스로 좋은 습관을 찾도록 돕는 의료 서비스가 목적이다.', // 기존 호환성
+            koreanDescription: '제주시 소재, <품듯한의원> 을 위한 브랜드 디자인 프로젝트. \'나 스스로를 사려깊게\' 라는 타이틀로 일방적 서비스 제공이 아닌 편안한 소통, 환자 스스로 좋은 습관을 찾도록 돕는 의료 서비스가 목적이다.\n\n양팔을 벌려 지친 마음까지 품어주는 사람의 형상, 한의원을 통해 상승하는 신체 에너지를 표현하는 곡선 그래픽이 특징이다. 패키지의 색감 및 소재 또한 긴장감 없이 편안한 느낌을 받을 수 있도록 선별되었다.',
+            englishDescription: 'Brand design project for PUMDT Korean Medicine Clinic located in Jeju City. With the title "Thoughtfully caring for oneself," the goal is to provide medical services that encourage comfortable communication and help patients find good habits on their own, rather than providing unilateral services.\n\nThe design features the shape of a person spreading their arms to embrace even tired hearts, and curved graphics expressing the rising body energy through the clinic. The colors and materials of the package were also selected to provide a comfortable feeling without tension.',
             project: 'Branding,Package design',
             client: 'PUMDT Korean medicine clinic',
             date: 'Feb, 2022',
@@ -119,7 +121,8 @@ class PortfolioManager {
                     <div class="flex-1">
                         <h3 class="text-xl font-semibold mb-2">${portfolio.englishTitle || portfolio.title}</h3>
                         ${portfolio.koreanTitle ? `<p class="text-lg text-gray-700 mb-2">${portfolio.koreanTitle}</p>` : ''}
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${portfolio.description.substring(0, 100)}...</p>
+                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${(portfolio.koreanDescription || portfolio.description || '').substring(0, 100)}...</p>
+                        ${portfolio.englishDescription ? `<p class="text-gray-500 text-xs mb-2 line-clamp-2">English: ${portfolio.englishDescription.substring(0, 80)}...</p>` : ''}
                         <div class="text-sm text-gray-500 mb-4">
                             <p><strong>Project:</strong> ${portfolio.project}</p>
                             <p><strong>Client:</strong> ${portfolio.client}</p>
@@ -162,7 +165,8 @@ class PortfolioManager {
         document.getElementById('portfolio-id').value = portfolio.id;
         document.getElementById('portfolio-english-title').value = portfolio.englishTitle || portfolio.title || '';
         document.getElementById('portfolio-korean-title').value = portfolio.koreanTitle || '';
-        document.getElementById('portfolio-description').value = portfolio.description;
+        document.getElementById('portfolio-korean-description').value = portfolio.koreanDescription || portfolio.description || '';
+        document.getElementById('portfolio-english-description').value = portfolio.englishDescription || '';
         document.getElementById('portfolio-project').value = portfolio.project;
         document.getElementById('portfolio-client').value = portfolio.client;
         document.getElementById('portfolio-date').value = portfolio.date;
@@ -209,13 +213,14 @@ class PortfolioManager {
         // 필수 필드 검증
         const englishTitle = document.getElementById('portfolio-english-title').value;
         const koreanTitle = document.getElementById('portfolio-korean-title').value;
-        const description = document.getElementById('portfolio-description').value;
+        const englishDescription = document.getElementById('portfolio-english-description').value;
+        const koreanDescription = document.getElementById('portfolio-korean-description').value;
         const project = document.getElementById('portfolio-project').value;
         const client = document.getElementById('portfolio-client').value;
         const date = document.getElementById('portfolio-date').value;
         
-        if (!englishTitle || !description || !project || !client || !date) {
-            this.showAlert('모든 필수 필드를 입력해주세요. (영문 제목은 필수입니다)', 'error');
+        if (!englishTitle || !koreanDescription || !project || !client || !date) {
+            this.showAlert('모든 필수 필드를 입력해주세요. (영문 제목과 한글 설명은 필수입니다)', 'error');
             return;
         }
         
@@ -266,7 +271,9 @@ class PortfolioManager {
                 englishTitle,
                 koreanTitle,
                 title: englishTitle, // 기존 호환성을 위해 유지
-                description,
+                englishDescription,
+                koreanDescription,
+                description: koreanDescription, // 기존 호환성을 위해 유지
                 project,
                 client,
                 date,
@@ -361,13 +368,19 @@ class PortfolioManager {
         imagePaths.forEach((imagePath, index) => {
             const imageItem = document.createElement('div');
             imageItem.className = 'multiple-image-item';
+            imageItem.draggable = true;
+            imageItem.dataset.index = index;
+            imageItem.dataset.imageUrl = imagePath;
             const imageUrl = imagePath.includes('?') ? `${imagePath}&t=${Date.now()}` : `${imagePath}?t=${Date.now()}`;
             imageItem.innerHTML = `
+                <div class="image-order-number">${index + 1}</div>
                 <img src="${imageUrl}" class="multiple-preview-image" alt="Detail image ${index + 1}" loading="lazy">
                 <button type="button" class="remove-preview-btn" onclick="portfolioManager.removeExistingDetailImage(${index})">×</button>
             `;
             previewContainer.appendChild(imageItem);
         });
+        
+        this.initializeDragAndDrop();
     }
 
     clearImagePreviews() {
@@ -574,6 +587,104 @@ window.previewThumbnail = previewThumbnail;
 window.removeThumbnailPreview = removeThumbnailPreview;
 window.previewDetailImages = previewDetailImages;
 window.removeDetailImageByIndex = removeDetailImageByIndex;
+
+// 드래그 앤 드롭 기능을 PortfolioManager 클래스에 추가
+PortfolioManager.prototype.initializeDragAndDrop = function() {
+    const container = document.getElementById('detail-images-preview');
+    if (!container) return;
+
+    let draggedElement = null;
+
+    // 드래그 시작
+    container.addEventListener('dragstart', (e) => {
+        if (e.target.closest('.multiple-image-item')) {
+            draggedElement = e.target.closest('.multiple-image-item');
+            draggedElement.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', draggedElement.outerHTML);
+        }
+    });
+
+    // 드래그 종료
+    container.addEventListener('dragend', (e) => {
+        if (draggedElement) {
+            draggedElement.classList.remove('dragging');
+            draggedElement = null;
+        }
+        // 모든 drag-over 클래스 제거
+        container.querySelectorAll('.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+        });
+    });
+
+    // 드래그 오버
+    container.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const afterElement = this.getDragAfterElement(container, e.clientY);
+        const dragging = container.querySelector('.dragging');
+        
+        if (afterElement == null) {
+            container.appendChild(dragging);
+        } else {
+            container.insertBefore(dragging, afterElement);
+        }
+    });
+
+    // 드롭
+    container.addEventListener('drop', (e) => {
+        e.preventDefault();
+        this.updateImageOrder();
+    });
+};
+
+// 드래그 위치 계산
+PortfolioManager.prototype.getDragAfterElement = function(container, y) {
+    const draggableElements = [...container.querySelectorAll('.multiple-image-item:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+};
+
+// 이미지 순서 업데이트
+PortfolioManager.prototype.updateImageOrder = function() {
+    const container = document.getElementById('detail-images-preview');
+    const items = container.querySelectorAll('.multiple-image-item');
+    
+    // 새로운 순서로 배열 재정렬
+    const newOrder = [];
+    items.forEach((item, index) => {
+        const imageUrl = item.dataset.imageUrl;
+        if (imageUrl) {
+            newOrder.push(imageUrl);
+        }
+        
+        // 순서 번호 업데이트
+        const orderNumber = item.querySelector('.image-order-number');
+        if (orderNumber) {
+            orderNumber.textContent = index + 1;
+        }
+        
+        // 데이터 속성 업데이트
+        item.dataset.index = index;
+    });
+
+    // 현재 편집 중인 포트폴리오의 이미지 순서 업데이트
+    if (this.currentEditId) {
+        const portfolio = this.portfolios.find(p => p.id === this.currentEditId);
+        if (portfolio && portfolio.images) {
+            portfolio.images = newOrder;
+            console.log('이미지 순서 업데이트:', newOrder);
+        }
+    }
+};
 
 // 앱 초기화
 let portfolioManager;
