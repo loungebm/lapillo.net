@@ -667,14 +667,17 @@ class PortfolioManager {
         const infoPanel = document.getElementById('image-order-info');
         const container = document.getElementById('detail-images-preview');
         
+        if (!infoPanel) {
+            console.warn('⚠️ image-order-info 요소를 찾을 수 없음');
+            return;
+        }
+        
         if (container && container.children.length > 0) {
-            if (infoPanel) {
-                infoPanel.classList.remove('hidden');
-            }
+            infoPanel.classList.remove('hidden');
+            console.log('📋 이미지 순서 정보 패널 표시됨');
         } else {
-            if (infoPanel) {
-                infoPanel.classList.add('hidden');
-            }
+            infoPanel.classList.add('hidden');
+            console.log('📋 이미지 순서 정보 패널 숨김');
         }
     }
 
@@ -942,6 +945,11 @@ window.moveImageDown = function(index) {
 
 function moveImage(fromIndex, toIndex) {
     const container = document.getElementById('detail-images-preview');
+    if (!container) {
+        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
+        return;
+    }
+    
     const items = Array.from(container.children);
     
     if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length) {
@@ -974,6 +982,11 @@ function moveImage(fromIndex, toIndex) {
 
 function updateImageOrder() {
     const container = document.getElementById('detail-images-preview');
+    if (!container) {
+        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
+        return;
+    }
+    
     const items = Array.from(container.children);
     
     items.forEach((item, index) => {
@@ -1044,177 +1057,7 @@ PortfolioManager.prototype.initializeImageOrdering = function() {
     // updateImageOrder는 showExistingDetailImages에서 자동 호출됨
 };
 
-// 기존 인스타그램 스타일 함수들 제거됨 - 화살표 버튼 방식으로 교체
-
-// 순서 번호 클릭 핸들러
-window.handleImageOrderClick = function(index) {
-    console.log('🔢 순서 번호 클릭:', index);
-    handleImageClick(index);
-};
-
-// 선택에 추가
-function addToSelection(index) {
-    if (!imageOrderSelection.selectedImages.includes(index)) {
-        imageOrderSelection.selectedImages.push(index);
-        imageOrderSelection.selectionOrder.push(index);
-    }
-}
-
-// 선택에서 제거
-function removeFromSelection(index) {
-    const selectedIndex = imageOrderSelection.selectedImages.indexOf(index);
-    if (selectedIndex > -1) {
-        imageOrderSelection.selectedImages.splice(selectedIndex, 1);
-    }
-    
-    const orderIndex = imageOrderSelection.selectionOrder.indexOf(index);
-    if (orderIndex > -1) {
-        imageOrderSelection.selectionOrder.splice(orderIndex, 1);
-    }
-}
-
-// 시각적 업데이트
-function updateImageVisuals() {
-    const container = document.getElementById('detail-images-preview');
-    Array.from(container.children).forEach((item, index) => {
-        const orderNumber = item.querySelector('.image-order-number');
-        
-        if (imageOrderSelection.selectedImages.includes(index)) {
-            item.classList.add('selected');
-            item.classList.remove('unselected');
-            orderNumber.classList.add('selected');
-            
-            // 선택 순서 표시
-            const selectionOrder = imageOrderSelection.selectionOrder.indexOf(index) + 1;
-            orderNumber.textContent = selectionOrder;
-        } else {
-            item.classList.remove('selected');
-            orderNumber.classList.remove('selected');
-            orderNumber.textContent = index + 1;
-            
-            // 다른 이미지가 선택되어 있으면 흐리게
-            if (imageOrderSelection.selectedImages.length > 0) {
-                item.classList.add('unselected');
-            } else {
-                item.classList.remove('unselected');
-            }
-        }
-    });
-}
-
-// 선택 상태 업데이트
-function updateSelectionStatus() {
-    const statusSpan = document.getElementById('selection-status');
-    const countSpan = document.getElementById('selected-count');
-    
-    if (imageOrderSelection.selectedImages.length === 0) {
-        statusSpan.textContent = '📷 이미지를 클릭하여 순서를 설정하세요';
-        countSpan.textContent = '0개 선택됨';
-    } else {
-        statusSpan.textContent = '✨ 선택된 이미지들의 순서가 변경됩니다';
-        countSpan.textContent = `${imageOrderSelection.selectedImages.length}개 선택됨`;
-    }
-}
-
-// 전역 제어 함수들
-window.clearSelection = function() {
-    imageOrderSelection.selectedImages = [];
-    imageOrderSelection.selectionOrder = [];
-    updateImageVisuals();
-    updateSelectionStatus();
-    console.log('🔄 선택 초기화됨');
-};
-
-window.reverseOrder = async function() {
-    if (imageOrderSelection.selectedImages.length < 2) {
-        alert('순서를 뒤집으려면 최소 2개의 이미지를 선택하세요.');
-        return;
-    }
-    
-    imageOrderSelection.selectionOrder.reverse();
-    updateImageVisuals();
-    await applyNewOrder();
-    console.log('🔄 선택된 이미지 순서 뒤집기 적용');
-};
-
-window.resetOrder = async function() {
-    const container = document.getElementById('detail-images-preview');
-    const items = Array.from(container.children);
-    
-    // 원본 순서로 정렬
-    items.sort((a, b) => {
-        const indexA = parseInt(a.dataset.originalIndex);
-        const indexB = parseInt(b.dataset.originalIndex);
-        return indexA - indexB;
-    });
-    
-    // DOM 재배치
-    container.innerHTML = '';
-    items.forEach(item => container.appendChild(item));
-    
-    // 순서 번호 업데이트
-    items.forEach((item, index) => {
-        const orderNumber = item.querySelector('.image-order-number');
-        orderNumber.textContent = index + 1;
-        item.dataset.index = index;
-    });
-    
-    clearSelection();
-    updatePortfolioImageOrder();
-    console.log('🔄 기본 순서로 복원됨');
-};
-
-// 새로운 순서 적용 (간단한 버전)
-async function applyNewOrder() {
-    if (imageOrderSelection.selectedImages.length === 0) return;
-    
-    const container = document.getElementById('detail-images-preview');
-    const items = Array.from(container.children);
-    
-    console.log('🔄 순서 변경 시작:', {
-        selectedImages: imageOrderSelection.selectedImages,
-        selectionOrder: imageOrderSelection.selectionOrder,
-        totalItems: items.length
-    });
-    
-    // 모든 이미지 요소를 수집
-    const allItems = items.map((item, index) => ({
-        element: item,
-        originalIndex: index,
-        imageUrl: item.dataset.imageUrl,
-        isSelected: imageOrderSelection.selectedImages.includes(index)
-    }));
-    
-    // 선택된 이미지들을 선택 순서대로 재정렬
-    const selectedItems = imageOrderSelection.selectionOrder.map(originalIndex => 
-        allItems.find(item => item.originalIndex === originalIndex)
-    ).filter(item => item); // undefined 제거
-    
-    // 선택되지 않은 이미지들
-    const unselectedItems = allItems.filter(item => !item.isSelected);
-    
-    // 새로운 순서 생성: 선택된 이미지들을 처음 부분에 배치
-    const newOrderItems = [...selectedItems, ...unselectedItems];
-    
-    console.log('📋 새로운 순서:', newOrderItems.map(item => item.imageUrl?.substring(item.imageUrl.lastIndexOf('/') + 1)));
-    
-    // DOM 다시 구성
-    container.innerHTML = '';
-    newOrderItems.forEach((item, index) => {
-        container.appendChild(item.element);
-        
-        // 순서 번호 업데이트
-        const orderNumber = item.element.querySelector('.image-order-number');
-        if (orderNumber) {
-            orderNumber.textContent = index + 1;
-        }
-        item.element.dataset.index = index;
-    });
-    
-    updatePortfolioImageOrder();
-    clearSelection();
-    console.log('✅ 순서 변경 완료');
-}
+// 기존 인스타그램 스타일 함수들 모두 제거됨 - 화살표 버튼 방식으로 대체
 
 // 포트폴리오 이미지 순서 업데이트 (메모리만, 저장은 handleSubmit에서)
 function updatePortfolioImageOrder() {
