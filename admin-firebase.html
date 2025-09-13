@@ -292,6 +292,20 @@
             gap: 1rem;
         }
         
+        /* 1개 컬럼 세로 배치 스타일 */
+        .sortable-images-single-column {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .sortable-images-single-column .multiple-image-item {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
         .multiple-image-item {
             position: relative;
             border-radius: 8px;
@@ -498,7 +512,7 @@
                 <input type="hidden" id="portfolio-id" value="">
                 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left Column -->
+                    <!-- Left Column - 텍스트 입력 필드들 -->
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">작품 제목 (영문) - 메인 페이지 표시</label>
@@ -510,6 +524,35 @@
                             <input type="text" id="portfolio-korean-title" class="form-input" placeholder="브로스 마카롱, 아카이브 우도 드립백">
                         </div>
                         
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트 타입</label>
+                            <input type="text" id="portfolio-project" class="form-input" placeholder="Branding, Package design" required>
+                            <small class="text-gray-500">쉼표로 구분하여 입력하세요</small>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">클라이언트</label>
+                            <input type="text" id="portfolio-client" class="form-input" placeholder="클라이언트명" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
+                            <input type="text" id="portfolio-date" class="form-input" placeholder="Feb, 2022" required>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (한글) - 상세 페이지 기본</label>
+                            <textarea id="portfolio-korean-description" class="form-textarea" placeholder="프로젝트에 대한 한글 상세 설명" rows="4" required></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (영문) - 추가 설명</label>
+                            <textarea id="portfolio-english-description" class="form-textarea" placeholder="Detailed description of the project in English" rows="4"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - 이미지 업로드 -->
+                    <div class="space-y-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">썸네일 이미지</label>
                             <div class="file-upload-container">
@@ -529,35 +572,6 @@
                         </div>
                         
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (한글) - 상세 페이지 기본</label>
-                            <textarea id="portfolio-korean-description" class="form-textarea" placeholder="프로젝트에 대한 한글 상세 설명" rows="4" required></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (영문) - 추가 설명</label>
-                            <textarea id="portfolio-english-description" class="form-textarea" placeholder="Detailed description of the project in English" rows="4"></textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column -->
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트 타입</label>
-                            <input type="text" id="portfolio-project" class="form-input" placeholder="Branding, Package design" required>
-                            <small class="text-gray-500">쉼표로 구분하여 입력하세요</small>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">클라이언트</label>
-                            <input type="text" id="portfolio-client" class="form-input" placeholder="클라이언트명" required>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
-                            <input type="text" id="portfolio-date" class="form-input" placeholder="Feb, 2022" required>
-                        </div>
-                        
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">상세 이미지</label>
                             <div class="multiple-file-upload-container">
                                 <input type="file" id="detail-images-file" accept="image/*" multiple class="file-input" onchange="previewDetailImages(this)">
@@ -568,7 +582,7 @@
                                     <span>이미지들을 선택하거나 드래그하세요 (여러 개 선택 가능)</span>
                                     <small class="text-gray-500">Firebase Storage에 자동 업로드됩니다</small>
                                 </label>
-                                <div id="detail-images-preview" class="sortable-images">
+                                <div id="detail-images-preview" class="sortable-images-single-column">
                                     <!-- 미리보기 이미지들이 여기에 표시됩니다 -->
                                 </div>
                                 <div id="image-order-info" class="image-order-info hidden">
