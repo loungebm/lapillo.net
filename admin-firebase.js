@@ -830,39 +830,66 @@ function previewDetailImages(input) {
     const previewContainer = document.getElementById('detail-images-preview');
     if (!previewContainer) return;
     
-    previewContainer.innerHTML = '';
+    // 기존 이미지들은 유지하고 새로운 이미지만 추가
+    const existingItemsCount = previewContainer.children.length;
     
     files.forEach((file, i) => {
         const imageItem = document.createElement('div');
         imageItem.className = 'multiple-image-item';
+        const actualIndex = existingItemsCount + i; // 기존 이미지 개수를 고려한 실제 인덱스
         
         const reader = new FileReader();
         reader.onload = (e) => {
+            const totalItems = previewContainer.children.length;
             imageItem.innerHTML = `
-                <img src="${e.target.result}" class="multiple-preview-image" alt="Detail image ${i + 1}">
-                <button type="button" class="remove-preview-btn" onclick="removeDetailImageByIndex(${i})">×</button>
+                <div class="image-order-number">${actualIndex + 1}</div>
+                <div class="image-arrow-controls">
+                    <button type="button" class="arrow-btn" onclick="moveImageUp(${actualIndex})" ${actualIndex === 0 ? 'disabled' : ''}>↑</button>
+                    <button type="button" class="arrow-btn" onclick="moveImageDown(${actualIndex})" ${actualIndex === totalItems - 1 ? 'disabled' : ''}>↓</button>
+                </div>
+                <img src="${e.target.result}" class="multiple-preview-image" alt="Detail image ${actualIndex + 1}" loading="lazy">
+                <button type="button" class="remove-preview-btn" onclick="removeDetailImageByIndex(${actualIndex})">×</button>
             `;
+            
+            // 새로운 이미지가 추가된 후 모든 이미지의 순서와 버튼 상태 업데이트
+            updateImageOrder();
+            
+            // 이미지 순서 정보 표시
+            if (window.portfolioManager) {
+                window.portfolioManager.showImageOrderInfo();
+            }
         };
         reader.readAsDataURL(file);
         
         previewContainer.appendChild(imageItem);
     });
+    
+    // 파일 입력 초기화 (같은 파일을 다시 선택할 수 있도록)
+    input.value = '';
+    
+    console.log(`📷 새로운 이미지 ${files.length}개 추가됨, 총 이미지: ${previewContainer.children.length}개`);
 }
 
 // 상세 이미지 개별 제거
 function removeDetailImageByIndex(index) {
-    const fileInput = document.getElementById('detail-images-file');
-    const files = Array.from(fileInput.files);
+    const previewContainer = document.getElementById('detail-images-preview');
+    if (!previewContainer) return;
     
-    const dt = new DataTransfer();
-    files.forEach((file, i) => {
-        if (i !== index) {
-            dt.items.add(file);
-        }
-    });
+    const items = Array.from(previewContainer.children);
+    if (index < 0 || index >= items.length) return;
     
-    fileInput.files = dt.files;
-    previewDetailImages(fileInput);
+    // DOM에서 해당 이미지 제거
+    items[index].remove();
+    
+    // 모든 이미지의 순서 번호와 버튼 상태 업데이트
+    updateImageOrder();
+    
+    // 이미지 순서 정보 업데이트
+    if (window.portfolioManager) {
+        window.portfolioManager.showImageOrderInfo();
+    }
+    
+    console.log(`🗑️ 이미지 ${index + 1} 제거됨, 남은 이미지: ${previewContainer.children.length}개`);
 }
 
 // 전역 스코프에 함수들 바인딩
