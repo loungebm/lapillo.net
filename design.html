@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>lapillo</title>
+    <title>Design - lapillo</title>
     <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="studio-lapillo.css">
@@ -36,22 +36,26 @@
                 <div class="hidden md:flex items-center space-x-12">
                     <!-- Logo -->
                     <div class="flex-shrink-0">
-                        <img src="./img/lapillo_logo_web.png" alt="lapillo" style="height: 6rem;" class="w-auto logo-desktop">
+                        <a href="index.html">
+                            <img src="./img/lapillo_logo_web.png" alt="lapillo" style="height: 6rem;" class="w-auto logo-desktop">
+                        </a>
                     </div>
                     
                     <!-- Navigation Menu -->
                     <nav class="flex space-x-8">
-                        <a href="design.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Design</a>
+                        <a href="design.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium border-b-2 border-gray-900">Design</a>
                         <a href="artwork.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Artwork</a>
                         <a href="exhibition.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Exhibition</a>
-                        <a href="#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>
-                        <a href="#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>
+                        <a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>
+                        <a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>
                     </nav>
                 </div>
 
                 <!-- Mobile Logo (centered) -->
                 <div class="mobile-logo md:hidden flex-1 flex justify-center">
-                    <img src="./img/lapillo_logo_web.png" alt="lapillo" class="logo-mobile">
+                    <a href="index.html">
+                        <img src="./img/lapillo_logo_web.png" alt="lapillo" class="logo-mobile">
+                    </a>
                 </div>
                 
                 <!-- Desktop Right side: Instagram Icon -->
@@ -73,11 +77,11 @@
     <div class="mobile-menu-overlay" id="mobile-menu">
         <div class="mobile-menu-content">
             <nav class="mobile-nav">
-                <a href="design.html" class="mobile-nav-link">Design</a>
+                <a href="design.html" class="mobile-nav-link border-b-2 border-gray-900">Design</a>
                 <a href="artwork.html" class="mobile-nav-link">Artwork</a>
                 <a href="exhibition.html" class="mobile-nav-link">Exhibition</a>
-                <a href="#about" class="mobile-nav-link">About</a>
-                <a href="#contact" class="mobile-nav-link">Contact</a>
+                <a href="index.html#about" class="mobile-nav-link">About</a>
+                <a href="index.html#contact" class="mobile-nav-link">Contact</a>
                 <div class="mobile-instagram-wrapper">
                 <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -97,7 +101,7 @@
                 <!-- Firebase에서 로드할 때까지 로딩 표시 -->
                 <div id="loading" class="col-span-full text-center py-12">
                     <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
-                    <p class="text-gray-600">포트폴리오 로딩 중...</p>
+                    <p class="text-gray-600">Design 포트폴리오 로딩 중...</p>
                 </div>
 
             </div>
@@ -209,7 +213,7 @@
             });
         });
         
-        // Firebase 설정 및 포트폴리오 로드
+        // Firebase 설정 및 Design 포트폴리오 로드
         const firebaseConfig = {
             apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
             authDomain: "lapillo-portfolio.firebaseapp.com",
@@ -224,18 +228,21 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 모든 포트폴리오 로드 함수 (index 페이지용)
-        async function loadAllPortfolios() {
+        // Design 카테고리 포트폴리오 로드 함수
+        async function loadDesignPortfolios() {
             try {
-                console.log('Firebase 포트폴리오 로딩 시작...');
+                console.log('Firebase Design 포트폴리오 로딩 시작...');
                 const snapshot = await db.collection('portfolios').orderBy('createdAt', 'desc').get();
-                const portfolios = [];
+                const allPortfolios = [];
                 
                 snapshot.forEach((doc) => {
-                    portfolios.push({ id: doc.id, ...doc.data() });
+                    allPortfolios.push({ id: doc.id, ...doc.data() });
                 });
                 
-                console.log('로드된 포트폴리오:', portfolios.length, '개 (최신순으로 정렬됨)');
+                // Design 카테고리만 필터링 (기본값도 design으로 처리)
+                const designPortfolios = allPortfolios.filter(p => (p.category || 'design') === 'design');
+                
+                console.log('로드된 Design 포트폴리오:', designPortfolios.length, '개');
                 
                 // 로딩 숨기기
                 const loadingElement = document.getElementById('loading');
@@ -245,9 +252,9 @@
                 
                 // 포트폴리오 렌더링
                 const gridContainer = document.getElementById('gridThumbs');
-                if (gridContainer && portfolios.length > 0) {
+                if (gridContainer && designPortfolios.length > 0) {
                     // Firebase 데이터로 새 항목들 추가
-                    portfolios.forEach(portfolio => {
+                    designPortfolios.forEach(portfolio => {
                         const gridItem = document.createElement('a');
                         gridItem.className = 'grid-item';
                         gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
@@ -265,6 +272,12 @@
                         
                         gridContainer.appendChild(gridItem);
                     });
+                } else if (gridContainer) {
+                    gridContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <p class="text-gray-500">Design 카테고리에 포트폴리오가 없습니다.</p>
+                        </div>
+                    `;
                 }
                 
             } catch (error) {
@@ -283,7 +296,7 @@
         
         // Firebase 로드 후 포트폴리오 로드 및 네비게이션 업데이트
         setTimeout(async () => {
-            loadAllPortfolios();
+            loadDesignPortfolios();
             
             // 동적 네비게이션 업데이트
             if (window.navigationManager) {

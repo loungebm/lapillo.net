@@ -219,7 +219,9 @@ class ImageManager {
 class PortfolioManager {
     constructor() {
         this.portfolios = [];
+        this.menus = [];
         this.currentEditId = null;
+        this.currentMenuEditId = null;
         this.uploadInProgress = false;
         this.pendingFiles = [];
         this.firebaseService = null;
@@ -245,11 +247,17 @@ class PortfolioManager {
             await this.loadPortfolios();
             console.log('✅ 포트폴리오 로드 완료');
             
+            await this.loadMenus();
+            console.log('✅ 메뉴 로드 완료');
+            
             this.bindEvents();
             console.log('✅ 이벤트 바인딩 완료');
             
             this.renderPortfolios();
             console.log('✅ 포트폴리오 렌더링 완료');
+            
+            this.renderMenus();
+            console.log('✅ 메뉴 렌더링 완료');
             
             this.setupRealtimeUpdates();
             console.log('✅ 실시간 업데이트 설정 완료');
@@ -270,6 +278,199 @@ class PortfolioManager {
             // 실패 시 기본 데이터 사용
             this.portfolios = this.getDefaultPortfolio();
         }
+    }
+
+    // Firebase에서 메뉴 데이터 로드
+    async loadMenus() {
+        try {
+            this.menus = await this.firebaseService.getAllMenus();
+            console.log('메뉴 데이터 로드 완료:', this.menus.length, '개');
+            // 포트폴리오 카테고리 옵션 업데이트
+            this.updateCategoryOptions();
+        } catch (error) {
+            console.error('메뉴 로드 실패:', error);
+            this.showAlert('메뉴 데이터 로드에 실패했습니다.', 'error');
+            // 실패 시 기본 메뉴 사용
+            this.menus = this.firebaseService.getDefaultMenus();
+        }
+    }
+
+    // 메뉴 목록 렌더링
+    renderMenus() {
+        const container = document.getElementById('menu-list');
+        
+        if (!container) {
+            console.error('⚠️ menu-list 컨테이너를 찾을 수 없습니다.');
+            return;
+        }
+        
+        if (this.menus.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">메뉴가 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = this.menus.map(menu => `
+            <div class="flex items-center justify-between p-4 bg-white border rounded-lg">
+                <div class="flex items-center gap-4">
+                    <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium">
+                        ${menu.order}
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-900">${menu.name}</h4>
+                        <p class="text-sm text-gray-500">${menu.slug}.html</p>
+                    </div>
+                    ${menu.enabled ? 
+                        '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">활성</span>' : 
+                        '<span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">비활성</span>'
+                    }
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editMenuSafe('${menu.id}')" class="btn-secondary text-sm">편집</button>
+                    ${menu.isDeletable ? 
+                        `<button onclick="deleteMenuSafe('${menu.id}')" class="btn-secondary text-sm text-red-600">삭제</button>` : 
+                        '<span class="text-xs text-gray-400">기본 메뉴</span>'
+                    }
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 메뉴 추가 폼 표시
+    showAddMenuForm() {
+        console.log('➕ 새 메뉴 추가 모드');
+        this.currentMenuEditId = null;
+        this.clearMenuForm();
+        
+        const formTitle = document.getElementById('menu-form-title');
+        const menuForm = document.getElementById('menu-form');
+        const menuNameInput = document.getElementById('menu-name');
+        
+        if (formTitle) formTitle.textContent = '새 메뉴 추가';
+        if (menuForm) menuForm.classList.remove('hidden');
+        if (menuNameInput) menuNameInput.focus();
+    }
+
+    // 메뉴 편집
+    editMenu(menuId) {
+        console.log('📝 메뉴 편집:', menuId);
+        
+        const menu = this.menus.find(m => m.id === menuId);
+        if (!menu) {
+            console.error('❌ 메뉴를 찾을 수 없음:', menuId);
+            this.showAlert(`메뉴를 찾을 수 없습니다: ${menuId}`, 'error');
+            return;
+        }
+
+        this.currentMenuEditId = menuId;
+        this.fillMenuForm(menu);
+        
+        const formTitle = document.getElementById('menu-form-title');
+        const menuForm = document.getElementById('menu-form');
+        const menuNameInput = document.getElementById('menu-name');
+        
+        if (formTitle) formTitle.textContent = '메뉴 편집';
+        if (menuForm) menuForm.classList.remove('hidden');
+        if (menuNameInput) menuNameInput.focus();
+    }
+
+    // 메뉴 폼에 데이터 채우기
+    fillMenuForm(menu) {
+        const elements = {
+            'menu-id': menu.id,
+            'menu-name': menu.name || '',
+            'menu-slug': menu.slug || '',
+            'menu-order': menu.order || 1
+        };
+        
+        Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value;
+            } else {
+                console.warn(`⚠️ 메뉴 폼 요소를 찾을 수 없음: ${id}`);
+            }
+        });
+    }
+
+    // 메뉴 폼 초기화
+    clearMenuForm() {
+        const form = document.getElementById('menu-edit-form');
+        const menuId = document.getElementById('menu-id');
+        
+        if (form) form.reset();
+        if (menuId) menuId.value = '';
+    }
+
+    // 메뉴 폼 숨기기
+    hideMenuForm() {
+        const menuForm = document.getElementById('menu-form');
+        if (menuForm) menuForm.classList.add('hidden');
+        
+        this.currentMenuEditId = null;
+        this.clearMenuForm();
+    }
+
+    // 메뉴 저장
+    async saveMenu(menuData) {
+        try {
+            await this.firebaseService.saveMenu(menuData);
+            await this.loadMenus();
+            this.renderMenus();
+            this.hideMenuForm();
+            this.showAlert('메뉴가 성공적으로 저장되었습니다!', 'success');
+        } catch (error) {
+            console.error('메뉴 저장 실패:', error);
+            this.showAlert('메뉴 저장 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
+    }
+
+    // 메뉴 삭제
+    async deleteMenu(menuId) {
+        if (!confirm('정말로 이 메뉴를 삭제하시겠습니까?\n\n⚠️ 해당 카테고리의 포트폴리오들은 Design 카테고리로 이동됩니다.')) return;
+
+        try {
+            // 해당 카테고리의 포트폴리오들을 design으로 변경
+            const categoryPortfolios = this.portfolios.filter(p => p.category === menuId);
+            
+            for (const portfolio of categoryPortfolios) {
+                portfolio.category = 'design';
+                await this.firebaseService.savePortfolio(portfolio);
+            }
+            
+            // 메뉴 삭제
+            await this.firebaseService.deleteMenu(menuId);
+            
+            await this.loadMenus();
+            await this.loadPortfolios();
+            this.renderMenus();
+            this.renderPortfolios();
+            
+            this.showAlert('메뉴가 삭제되었습니다. 관련 포트폴리오는 Design 카테고리로 이동되었습니다.', 'success');
+        } catch (error) {
+            console.error('메뉴 삭제 실패:', error);
+            this.showAlert('메뉴 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
+    }
+
+    // 포트폴리오 카테고리 옵션 업데이트
+    updateCategoryOptions() {
+        const categorySelect = document.getElementById('portfolio-category');
+        if (!categorySelect) return;
+
+        // 기존 옵션 제거 (첫 번째 "선택하세요" 옵션은 유지)
+        while (categorySelect.children.length > 1) {
+            categorySelect.removeChild(categorySelect.lastChild);
+        }
+
+        // 활성화된 메뉴들을 옵션으로 추가
+        this.menus
+            .filter(menu => menu.enabled)
+            .forEach(menu => {
+                const option = document.createElement('option');
+                option.value = menu.id;
+                option.textContent = menu.name;
+                categorySelect.appendChild(option);
+            });
     }
 
     // 기본 포트폴리오 데이터
@@ -344,6 +545,17 @@ class PortfolioManager {
         });
         
         console.log('✅ 폼 이벤트 바인딩 완료');
+        
+        // 메뉴 폼 이벤트 바인딩
+        const menuForm = document.getElementById('menu-edit-form');
+        if (menuForm) {
+            menuForm.addEventListener('submit', (e) => {
+                console.log('🎯 메뉴 폼 제출 이벤트 감지');
+                e.preventDefault();
+                this.handleMenuSubmit(e);
+            });
+            console.log('✅ 메뉴 폼 이벤트 바인딩 완료');
+        }
         
         // 드래그 앤 드롭 이벤트 설정
         this.setupDragAndDrop();
@@ -805,6 +1017,78 @@ class PortfolioManager {
         }
     }
 
+    // 메뉴 폼 제출 처리
+    async handleMenuSubmit(e) {
+        try {
+            if (e) e.preventDefault();
+            console.log('📝 메뉴 폼 제출 시작');
+
+            // 필수 필드 검증
+            const menuNameEl = document.getElementById('menu-name');
+            const menuSlugEl = document.getElementById('menu-slug');
+            const menuOrderEl = document.getElementById('menu-order');
+            
+            if (!menuNameEl || !menuSlugEl || !menuOrderEl) {
+                console.error('❌ 메뉴 필수 입력 필드를 찾을 수 없습니다');
+                this.showAlert('페이지에 오류가 있습니다. 새로고침 후 다시 시도해주세요.', 'error');
+                return;
+            }
+            
+            const menuName = menuNameEl.value.trim();
+            const menuSlug = menuSlugEl.value.trim().toLowerCase();
+            const menuOrder = parseInt(menuOrderEl.value) || 1;
+            
+            console.log('🔍 메뉴 필드 값 확인:', {
+                name: menuName || '(비어있음)',
+                slug: menuSlug || '(비어있음)',
+                order: menuOrder
+            });
+            
+            if (!menuName || !menuSlug) {
+                console.log('❌ 메뉴 필수 필드 누락');
+                this.showAlert('메뉴명과 URL 슬러그는 필수입니다.', 'error');
+                return;
+            }
+
+            // URL 슬러그 유효성 검사
+            if (!/^[a-z0-9-]+$/.test(menuSlug)) {
+                this.showAlert('URL 슬러그는 영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.', 'error');
+                return;
+            }
+
+            // 중복 확인 (편집 중인 메뉴 제외)
+            const existingMenu = this.menus.find(m => 
+                (m.slug === menuSlug || m.name === menuName) && 
+                m.id !== this.currentMenuEditId
+            );
+            
+            if (existingMenu) {
+                this.showAlert('이미 존재하는 메뉴명 또는 URL 슬러그입니다.', 'error');
+                return;
+            }
+
+            // 메뉴 ID 생성 (새로운 경우) 또는 기존 ID 사용
+            const menuId = this.currentMenuEditId || menuSlug;
+            
+            const menuData = {
+                id: menuId,
+                name: menuName,
+                slug: menuSlug,
+                order: menuOrder,
+                enabled: true,
+                isDeletable: menuId !== 'design' // Design 메뉴는 삭제 불가
+            };
+            
+            console.log('💾 메뉴 저장 시도:', menuData);
+            
+            await this.saveMenu(menuData);
+            
+        } catch (error) {
+            console.error('💥 메뉴 저장 오류:', error);
+            this.showAlert('메뉴 저장 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
+    }
+
     // 포트폴리오 삭제
     async deletePortfolio(id) {
         if (!confirm('정말로 이 포트폴리오를 삭제하시겠습니까?\n\n⚠️ 관련된 모든 이미지도 함께 삭제됩니다.')) return;
@@ -1144,6 +1428,72 @@ window.deletePortfolioSafe = function(id) {
     console.log('🗑️ 삭제 버튼 클릭:', id);
     if (window.portfolioManager && typeof window.portfolioManager.deletePortfolio === 'function') {
         window.portfolioManager.deletePortfolio(id);
+    } else {
+        console.error('❌ portfolioManager가 초기화되지 않았습니다');
+        alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    }
+};
+
+// 전역 메뉴 관리 함수들
+window.showAddMenuForm = function() {
+    if (window.portfolioManager && typeof window.portfolioManager.showAddMenuForm === 'function') {
+        window.portfolioManager.showAddMenuForm();
+    } else {
+        console.error('❌ portfolioManager가 초기화되지 않았습니다');
+        alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    }
+};
+
+window.hideMenuForm = function() {
+    if (window.portfolioManager && typeof window.portfolioManager.hideMenuForm === 'function') {
+        window.portfolioManager.hideMenuForm();
+    } else {
+        console.error('❌ portfolioManager가 초기화되지 않았습니다');
+    }
+};
+
+window.editMenuSafe = function(id) {
+    console.log('🔧 메뉴 편집 버튼 클릭:', id);
+    
+    if (!id) {
+        console.error('❌ 메뉴 ID가 없습니다:', id);
+        alert('메뉴 ID가 올바르지 않습니다.');
+        return;
+    }
+    
+    if (window.portfolioManager && typeof window.portfolioManager.editMenu === 'function') {
+        try {
+            console.log('🔧 editMenu 함수 호출 시작');
+            window.portfolioManager.editMenu(id);
+            console.log('🔧 editMenu 함수 호출 완료');
+        } catch (error) {
+            console.error('🔧 editMenu 호출 중 오류:', error);
+            alert('메뉴 편집 중 오류가 발생했습니다: ' + error.message);
+        }
+    } else {
+        console.error('❌ portfolioManager가 초기화되지 않았습니다');
+        alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    }
+};
+
+window.deleteMenuSafe = function(id) {
+    console.log('🗑️ 메뉴 삭제 버튼 클릭:', id);
+    
+    if (!id) {
+        console.error('❌ 메뉴 ID가 없습니다:', id);
+        alert('메뉴 ID가 올바르지 않습니다.');
+        return;
+    }
+    
+    if (window.portfolioManager && typeof window.portfolioManager.deleteMenu === 'function') {
+        try {
+            console.log('🗑️ deleteMenu 함수 호출 시작');
+            window.portfolioManager.deleteMenu(id);
+            console.log('🗑️ deleteMenu 함수 호출 완료');
+        } catch (error) {
+            console.error('🗑️ deleteMenu 호출 중 오류:', error);
+            alert('메뉴 삭제 중 오류가 발생했습니다: ' + error.message);
+        }
     } else {
         console.error('❌ portfolioManager가 초기화되지 않았습니다');
         alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');

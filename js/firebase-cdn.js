@@ -22,6 +22,7 @@ const storage = firebase.storage();
 class FirebaseService {
     constructor() {
         this.portfoliosCollection = 'portfolios';
+        this.menusCollection = 'menus';
     }
 
     // 모든 포트폴리오 가져오기
@@ -147,6 +148,116 @@ class FirebaseService {
             await imageRef.delete();
         } catch (error) {
             console.error('Error deleting image from URL:', error);
+        }
+    }
+
+    // === 메뉴 관리 기능 ===
+    
+    // 모든 메뉴 가져오기
+    async getAllMenus() {
+        try {
+            const snapshot = await db.collection(this.menusCollection)
+                .orderBy('order', 'asc')
+                .get();
+            const menus = [];
+            snapshot.forEach((doc) => {
+                menus.push({ id: doc.id, ...doc.data() });
+            });
+            
+            // 기본 메뉴가 없으면 생성
+            if (menus.length === 0) {
+                return await this.createDefaultMenus();
+            }
+            
+            return menus;
+        } catch (error) {
+            console.error('Error getting menus:', error);
+            // 에러 시 기본 메뉴 반환
+            return this.getDefaultMenus();
+        }
+    }
+
+    // 기본 메뉴 생성
+    async createDefaultMenus() {
+        const defaultMenus = [
+            { id: 'design', name: 'Design', slug: 'design', order: 1, enabled: true, isDeletable: false },
+            { id: 'artwork', name: 'Artwork', slug: 'artwork', order: 2, enabled: true, isDeletable: true },
+            { id: 'exhibition', name: 'Exhibition', slug: 'exhibition', order: 3, enabled: true, isDeletable: true }
+        ];
+
+        try {
+            const batch = db.batch();
+            defaultMenus.forEach(menu => {
+                const docRef = db.collection(this.menusCollection).doc(menu.id);
+                batch.set(docRef, menu);
+            });
+            await batch.commit();
+            return defaultMenus;
+        } catch (error) {
+            console.error('Error creating default menus:', error);
+            return this.getDefaultMenus();
+        }
+    }
+
+    // 기본 메뉴 반환 (오프라인용)
+    getDefaultMenus() {
+        return [
+            { id: 'design', name: 'Design', slug: 'design', order: 1, enabled: true, isDeletable: false },
+            { id: 'artwork', name: 'Artwork', slug: 'artwork', order: 2, enabled: true, isDeletable: true },
+            { id: 'exhibition', name: 'Exhibition', slug: 'exhibition', order: 3, enabled: true, isDeletable: true }
+        ];
+    }
+
+    // 메뉴 저장/업데이트
+    async saveMenu(menuData) {
+        try {
+            await db.collection(this.menusCollection).doc(menuData.id).set(menuData);
+            return menuData;
+        } catch (error) {
+            console.error('Error saving menu:', error);
+            throw error;
+        }
+    }
+
+    // 메뉴 삭제
+    async deleteMenu(menuId) {
+        try {
+            // Design 메뉴는 삭제 불가
+            if (menuId === 'design') {
+                throw new Error('Design 메뉴는 삭제할 수 없습니다.');
+            }
+            await db.collection(this.menusCollection).doc(menuId).delete();
+        } catch (error) {
+            console.error('Error deleting menu:', error);
+            throw error;
+        }
+    }
+
+    // 실시간 메뉴 변경 감지
+    onMenusChange(callback) {
+        return db.collection(this.menusCollection)
+            .orderBy('order', 'asc')
+            .onSnapshot((snapshot) => {
+                const menus = [];
+                snapshot.forEach((doc) => {
+                    menus.push({ id: doc.id, ...doc.data() });
+                });
+                callback(menus);
+            });
+    }
+
+    // 메뉴 순서 업데이트
+    async updateMenuOrder(menuUpdates) {
+        try {
+            const batch = db.batch();
+            menuUpdates.forEach(({ id, order }) => {
+                const docRef = db.collection(this.menusCollection).doc(id);
+                batch.update(docRef, { order });
+            });
+            await batch.commit();
+        } catch (error) {
+            console.error('Error updating menu order:', error);
+            throw error;
         }
     }
 }
