@@ -225,10 +225,12 @@ class PortfolioManager {
         this.firebaseService = null;
         this.imageManager = new ImageManager(); // 새로운 이미지 관리자
         window.imageManager = this.imageManager; // 전역 접근 가능하도록
-        this.init();
+        // init()는 외부에서 await로 호출됨
     }
 
     async init() {
+        console.log('🔄 PortfolioManager.init() 시작');
+        
         // Firebase 초기화 대기
         this.firebaseService = window.firebaseService;
         if (!this.firebaseService) {
@@ -237,10 +239,24 @@ class PortfolioManager {
             return;
         }
 
-        await this.loadPortfolios();
-        this.bindEvents();
-        this.renderPortfolios();
-        this.setupRealtimeUpdates();
+        console.log('✅ Firebase 서비스 확인됨');
+        
+        try {
+            await this.loadPortfolios();
+            console.log('✅ 포트폴리오 로드 완료');
+            
+            this.bindEvents();
+            console.log('✅ 이벤트 바인딩 완료');
+            
+            this.renderPortfolios();
+            console.log('✅ 포트폴리오 렌더링 완료');
+            
+            this.setupRealtimeUpdates();
+            console.log('✅ 실시간 업데이트 설정 완료');
+        } catch (error) {
+            console.error('❌ PortfolioManager 초기화 중 에러:', error);
+            this.showAlert('데이터 로딩에 실패했습니다: ' + error.message, 'error');
+        }
     }
 
     // Firebase에서 포트폴리오 데이터 로드
@@ -1128,7 +1144,7 @@ window.deletePortfolioSafe = function(id) {
 // 앱 초기화
 let portfolioManager;
 
-function initializeApp() {
+async function initializeApp() {
     console.log('🔄 앱 초기화 시작...');
     
     // 필수 DOM 요소들이 있는지 확인
@@ -1147,11 +1163,16 @@ function initializeApp() {
         try {
             portfolioManager = new PortfolioManager();
             window.portfolioManager = portfolioManager;
-            console.log('✅ PortfolioManager 초기화 완료');
+            
+            // 비동기 초기화 완료까지 대기
+            await portfolioManager.init();
+            
+            console.log('✅ PortfolioManager 완전 초기화 완료');
             console.log('🔧 편집/삭제 함수 테스트:', {
                 editFunction: typeof window.editPortfolioSafe,
                 deleteFunction: typeof window.deletePortfolioSafe,
-                managerObject: typeof window.portfolioManager
+                managerObject: typeof window.portfolioManager,
+                portfolioCount: portfolioManager.portfolios.length
             });
         } catch (error) {
             console.error('❌ PortfolioManager 초기화 실패:', error);
@@ -1163,6 +1184,11 @@ function initializeApp() {
         }
     } else {
         console.error('❌ Firebase가 로드되지 않았습니다.');
+        console.log('Firebase 상태:', {
+            firebaseLoaded: typeof firebase !== 'undefined',
+            firebaseServiceExists: !!window.firebaseService
+        });
+        
         const alertContainer = document.getElementById('alert-container');
         if (alertContainer) {
             alertContainer.innerHTML = 
