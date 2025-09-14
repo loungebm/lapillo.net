@@ -400,23 +400,17 @@ class PortfolioManager {
             const existingThumbnail = this.currentEditId ? 
                 this.portfolios.find(p => p.id === this.currentEditId)?.thumbnail : null;
             
-            // 편집 모드에서는 메모리상의 현재 순서를 우선 사용
+            // 편집 모드에서 기존 이미지들 수집 (새로 추가된 파일 제외)
             let existingImages = [];
             if (this.currentEditId) {
-                const currentPortfolio = this.portfolios.find(p => p.id === this.currentEditId);
-                if (currentPortfolio && currentPortfolio.images) {
-                    // 메모리상의 최신 순서 사용 (updatePortfolioImageOrder에서 업데이트됨)
-                    existingImages = [...currentPortfolio.images];
-                    console.log('📋 메모리에서 가져온 현재 이미지 순서:', existingImages.map(url => url.substring(url.lastIndexOf('/') + 1)));
-                } else {
-                    // 메모리에 없으면 DOM에서 수집
-                    const previewContainer = document.getElementById('detail-images-preview');
-                    if (previewContainer && previewContainer.children.length > 0) {
-                        existingImages = Array.from(previewContainer.children)
-                            .map(item => item.dataset.imageUrl)
-                            .filter(url => url);
-                        console.log('📋 DOM에서 가져온 현재 이미지 순서:', existingImages.map(url => url.substring(url.lastIndexOf('/') + 1)));
-                    }
+                const previewContainer = document.getElementById('detail-images-preview');
+                if (previewContainer && previewContainer.children.length > 0) {
+                    // DOM에서 기존 이미지만 수집 (isNewFile이 아닌 것들)
+                    existingImages = Array.from(previewContainer.children)
+                        .filter(item => item.dataset.isNewFile !== 'true')
+                        .map(item => item.dataset.imageUrl)
+                        .filter(url => url);
+                    console.log('📋 DOM에서 가져온 기존 이미지:', existingImages.map(url => url ? url.substring(url.lastIndexOf('/') + 1) : 'null'));
                 }
             }
             
@@ -833,25 +827,16 @@ function previewDetailImages(input) {
     // 기존 이미지들은 유지하고 새로운 이미지만 추가
     const existingItemsCount = previewContainer.children.length;
     
-    // DataTransfer를 사용해서 파일 입력에 누적하기 (기존 방식으로 복원)
-    const dt = new DataTransfer();
-    
-    // 기존 파일들을 다시 추가
-    const existingFiles = Array.from(document.getElementById('detail-images-file').files || []);
-    existingFiles.forEach(file => dt.items.add(file));
-    
-    // 새로운 파일들 추가
-    files.forEach(file => dt.items.add(file));
-    
-    // 파일 입력 업데이트
-    document.getElementById('detail-images-file').files = dt.files;
-    
-    console.log(`💾 파일 입력 업데이트됨: 기존 ${existingFiles.length}개 + 새로운 ${files.length}개 = 총 ${dt.files.length}개`);
+    // 새로운 파일들만 미리보기에 추가 (파일 입력은 자동으로 새로운 파일들만 있음)
+    console.log(`📷 새로운 이미지 ${files.length}개 추가 시작, 기존 이미지: ${existingItemsCount}개`);
     
     files.forEach((file, i) => {
         const imageItem = document.createElement('div');
         imageItem.className = 'multiple-image-item';
         const actualIndex = existingItemsCount + i; // 기존 이미지 개수를 고려한 실제 인덱스
+        
+        // 새로 추가된 파일임을 표시
+        imageItem.dataset.isNewFile = 'true';
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -879,7 +864,7 @@ function previewDetailImages(input) {
         previewContainer.appendChild(imageItem);
     });
     
-    console.log(`📷 새로운 이미지 ${files.length}개 추가됨, 총 이미지: ${previewContainer.children.length}개`);
+    console.log(`📷 새로운 이미지 ${files.length}개 추가 완료, 총 이미지: ${previewContainer.children.length}개`);
 }
 
 // 상세 이미지 개별 제거
