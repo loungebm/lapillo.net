@@ -209,33 +209,30 @@
             });
         });
         
-        // Firebase 설정 및 포트폴리오 로드
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
-            authDomain: "lapillo-portfolio.firebaseapp.com",
-            projectId: "lapillo-portfolio",
-            storageBucket: "lapillo-portfolio.firebasestorage.app",
-            messagingSenderId: "7087688501",
-            appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
-            measurementId: "G-T2BS7KX4G6"
-        };
-
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
+        // Firebase는 이미 firebase-cdn.js에서 초기화됨
+        // 전역 변수 접근
         const db = firebase.firestore();
 
         // 모든 포트폴리오 로드 함수 (index 페이지용)
         async function loadAllPortfolios() {
             try {
-                console.log('Firebase 포트폴리오 로딩 시작...');
-                const snapshot = await db.collection('portfolios').orderBy('createdAt', 'desc').get();
-                const portfolios = [];
+                console.log('🔄 포트폴리오 로딩 시작...');
                 
-                snapshot.forEach((doc) => {
-                    portfolios.push({ id: doc.id, ...doc.data() });
-                });
+                // Firebase 서비스 대기
+                let retryCount = 0;
+                while (!window.firebaseService && retryCount < 10) {
+                    console.log(`⏳ Firebase 서비스 대기 중... (${retryCount + 1}/10)`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    retryCount++;
+                }
                 
-                console.log('로드된 포트폴리오:', portfolios.length, '개 (최신순으로 정렬됨)');
+                if (!window.firebaseService) {
+                    throw new Error('Firebase 서비스를 초기화할 수 없습니다.');
+                }
+                
+                // FirebaseService를 통한 포트폴리오 로드
+                const portfolios = await window.firebaseService.getAllPortfolios();
+                console.log('✅ 로드된 포트폴리오:', portfolios.length, '개');
                 
                 // 로딩 숨기기
                 const loadingElement = document.getElementById('loading');
@@ -245,36 +242,58 @@
                 
                 // 포트폴리오 렌더링
                 const gridContainer = document.getElementById('gridThumbs');
-                if (gridContainer && portfolios.length > 0) {
-                    // Firebase 데이터로 새 항목들 추가
-                    portfolios.forEach(portfolio => {
-                        const gridItem = document.createElement('a');
-                        gridItem.className = 'grid-item';
-                        gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
-                        
-                        gridItem.innerHTML = `
-                            <div class="grid-image">
-                                <div class="grid-image-inner-wrapper">
-                                    <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="portfolio-image">
+                if (gridContainer) {
+                    // 기존 내용 초기화
+                    gridContainer.innerHTML = '';
+                    
+                    if (portfolios.length > 0) {
+                        portfolios.forEach(portfolio => {
+                            const gridItem = document.createElement('a');
+                            gridItem.className = 'grid-item';
+                            gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
+                            
+                            gridItem.innerHTML = `
+                                <div class="grid-image">
+                                    <div class="grid-image-inner-wrapper">
+                                        <img src="${portfolio.thumbnail || './img/placeholder.jpg'}" 
+                                             alt="${portfolio.englishTitle || portfolio.title || 'Portfolio'}" 
+                                             class="portfolio-image"
+                                             onerror="this.src='./img/placeholder.jpg'">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="portfolio-text">
-                                <h3 class="portfolio-title">${portfolio.englishTitle || portfolio.title}</h3>
-                            </div>
-                        `;
-                        
-                        gridContainer.appendChild(gridItem);
-                    });
+                                <div class="portfolio-text">
+                                    <h3 class="portfolio-title">${portfolio.englishTitle || portfolio.title || 'Untitled'}</h3>
+                                </div>
+                            `;
+                            
+                            gridContainer.appendChild(gridItem);
+                        });
+                        console.log('✅ 포트폴리오 렌더링 완료');
+                    } else {
+                        gridContainer.innerHTML = '<div class="text-center text-gray-500 py-12">포트폴리오가 없습니다.</div>';
+                        console.log('⚠️ 포트폴리오 없음');
+                    }
                 }
                 
             } catch (error) {
-                console.error('포트폴리오 로딩 실패:', error);
+                console.error('❌ 포트폴리오 로드 에러:', error);
+                
+                // 로딩 숨기기
                 const loadingElement = document.getElementById('loading');
                 if (loadingElement) {
-                    loadingElement.innerHTML = `
+                    loadingElement.style.display = 'none';
+                }
+                
+                // 에러 메시지 표시
+                const gridContainer = document.getElementById('gridThumbs');
+                if (gridContainer) {
+                    gridContainer.innerHTML = `
                         <div class="text-center text-red-500 py-12">
                             <p>포트폴리오 로딩에 실패했습니다.</p>
-                            <p class="text-sm mt-2">Firebase 연결을 확인해주세요.</p>
+                            <p class="text-sm mt-2">오류: ${error.message}</p>
+                            <button onclick="loadAllPortfolios()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                다시 시도
+                            </button>
                         </div>
                     `;
                 }
@@ -283,11 +302,19 @@
         
         // Firebase 로드 후 포트폴리오 로드 및 네비게이션 업데이트
         setTimeout(async () => {
-            loadAllPortfolios();
+            console.log('🚀 페이지 로딩 시작');
+            console.log('📦 Firebase 상태:', !!window.firebase);
+            console.log('🔧 FirebaseService 상태:', !!window.firebaseService);
+            console.log('🧭 NavigationManager 상태:', !!window.navigationManager);
+            
+            await loadAllPortfolios();
             
             // 동적 네비게이션 업데이트
             if (window.navigationManager) {
                 await window.navigationManager.updateNavigation();
+                console.log('✅ 네비게이션 업데이트 완료');
+            } else {
+                console.warn('⚠️ NavigationManager가 없습니다');
             }
         }, 2000);
         
