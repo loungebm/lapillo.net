@@ -1,6 +1,224 @@
 // Portfolio Admin Management System with Firebase
 // Firebase CDN 방식으로 구현된 관리자 시스템
 
+// 이미지 관리 전용 클래스
+class ImageManager {
+    constructor() {
+        this.existingImages = []; // 기존 이미지 URL들
+        this.newFiles = []; // 새로 추가된 파일들
+        this.container = null; // DOM 컨테이너
+        this.reset();
+    }
+    
+    reset() {
+        this.existingImages = [];
+        this.newFiles = [];
+        this.updateContainer();
+    }
+    
+    setContainer() {
+        this.container = document.getElementById('detail-images-preview');
+    }
+    
+    updateContainer() {
+        this.setContainer();
+        if (!this.container) return;
+        
+        // 컨테이너 완전 초기화
+        this.container.innerHTML = '';
+        
+        // 기존 이미지들 먼저 표시
+        this.existingImages.forEach((imageUrl, index) => {
+            this.createImageItem(imageUrl, index, false);
+        });
+        
+        // 새로운 파일들 표시
+        this.newFiles.forEach((file, index) => {
+            const actualIndex = this.existingImages.length + index;
+            this.createImageItem(file, actualIndex, true);
+        });
+        
+        this.updateAllIndices();
+        this.showImageOrderInfo();
+    }
+    
+    createImageItem(source, index, isNewFile) {
+        if (!this.container) return;
+        
+        const imageItem = document.createElement('div');
+        imageItem.className = 'multiple-image-item';
+        imageItem.dataset.index = index;
+        
+        if (isNewFile) {
+            imageItem.dataset.isNewFile = 'true';
+            imageItem.dataset.fileIndex = this.newFiles.length - 1;
+            
+            // 파일인 경우 FileReader 사용
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.renderImageContent(imageItem, e.target.result, index);
+            };
+            reader.readAsDataURL(source);
+        } else {
+            imageItem.dataset.imageUrl = source;
+            // URL인 경우 바로 렌더링
+            this.renderImageContent(imageItem, source, index);
+        }
+        
+        this.container.appendChild(imageItem);
+    }
+    
+    renderImageContent(imageItem, imageSrc, index) {
+        const totalItems = this.existingImages.length + this.newFiles.length;
+        imageItem.innerHTML = `
+            <div class="image-order-number">${index + 1}</div>
+            <div class="image-arrow-controls">
+                <button type="button" class="arrow-btn" onclick="window.imageManager.moveUp(${index})" ${index === 0 ? 'disabled' : ''}>↑</button>
+                <button type="button" class="arrow-btn" onclick="window.imageManager.moveDown(${index})" ${index === totalItems - 1 ? 'disabled' : ''}>↓</button>
+            </div>
+            <img src="${imageSrc}" class="multiple-preview-image" alt="Detail image ${index + 1}" loading="lazy">
+            <button type="button" class="remove-preview-btn" onclick="window.imageManager.removeImage(${index})">×</button>
+        `;
+    }
+    
+    setExistingImages(imageUrls) {
+        this.existingImages = [...imageUrls];
+        this.updateContainer();
+        console.log('🖼️ 기존 이미지 설정:', this.existingImages.length, '개');
+    }
+    
+    addNewFiles(files) {
+        this.newFiles.push(...files);
+        this.updateContainer();
+        console.log('📎 새로운 파일 추가:', files.length, '개, 총:', this.newFiles.length, '개');
+    }
+    
+    moveUp(index) {
+        if (index <= 0) return;
+        
+        const totalExisting = this.existingImages.length;
+        
+        if (index < totalExisting) {
+            // 기존 이미지 이동
+            [this.existingImages[index], this.existingImages[index - 1]] = 
+            [this.existingImages[index - 1], this.existingImages[index]];
+        } else {
+            // 새로운 파일 이동
+            const fileIndex = index - totalExisting;
+            if (fileIndex > 0) {
+                [this.newFiles[fileIndex], this.newFiles[fileIndex - 1]] = 
+                [this.newFiles[fileIndex - 1], this.newFiles[fileIndex]];
+            } else if (totalExisting > 0) {
+                // 새로운 파일을 기존 이미지 영역으로 이동
+                const file = this.newFiles.shift();
+                this.existingImages.push(file); // 임시로 추가 (실제로는 URL로 변환 필요)
+            }
+        }
+        
+        this.updateContainer();
+    }
+    
+    moveDown(index) {
+        const totalItems = this.existingImages.length + this.newFiles.length;
+        if (index >= totalItems - 1) return;
+        
+        const totalExisting = this.existingImages.length;
+        
+        if (index < totalExisting - 1) {
+            // 기존 이미지 이동
+            [this.existingImages[index], this.existingImages[index + 1]] = 
+            [this.existingImages[index + 1], this.existingImages[index]];
+        } else if (index === totalExisting - 1 && this.newFiles.length > 0) {
+            // 기존 이미지 마지막을 새로운 파일과 교체
+            const lastExisting = this.existingImages.pop();
+            const firstNew = this.newFiles.shift();
+            this.existingImages.push(firstNew); // 임시
+            this.newFiles.unshift(lastExisting); // 임시
+        } else {
+            // 새로운 파일 이동
+            const fileIndex = index - totalExisting;
+            [this.newFiles[fileIndex], this.newFiles[fileIndex + 1]] = 
+            [this.newFiles[fileIndex + 1], this.newFiles[fileIndex]];
+        }
+        
+        this.updateContainer();
+    }
+    
+    removeImage(index) {
+        const totalExisting = this.existingImages.length;
+        
+        if (index < totalExisting) {
+            // 기존 이미지 제거
+            this.existingImages.splice(index, 1);
+        } else {
+            // 새로운 파일 제거
+            const fileIndex = index - totalExisting;
+            this.newFiles.splice(fileIndex, 1);
+        }
+        
+        this.updateContainer();
+        console.log(`🗑️ 이미지 ${index + 1} 제거됨`);
+    }
+    
+    updateAllIndices() {
+        if (!this.container) return;
+        
+        const items = Array.from(this.container.children);
+        items.forEach((item, index) => {
+            item.dataset.index = index;
+            
+            const orderNumber = item.querySelector('.image-order-number');
+            if (orderNumber) {
+                orderNumber.textContent = index + 1;
+            }
+            
+            const upBtn = item.querySelector('.arrow-btn:first-child');
+            const downBtn = item.querySelector('.arrow-btn:last-child');
+            
+            if (upBtn) {
+                upBtn.disabled = (index === 0);
+                upBtn.onclick = () => this.moveUp(index);
+            }
+            
+            if (downBtn) {
+                downBtn.disabled = (index === items.length - 1);
+                downBtn.onclick = () => this.moveDown(index);
+            }
+            
+            const removeBtn = item.querySelector('.remove-preview-btn');
+            if (removeBtn) {
+                removeBtn.onclick = () => this.removeImage(index);
+            }
+        });
+    }
+    
+    showImageOrderInfo() {
+        const infoPanel = document.getElementById('image-order-info');
+        if (!infoPanel) return;
+        
+        const totalImages = this.existingImages.length + this.newFiles.length;
+        if (totalImages > 0) {
+            infoPanel.classList.remove('hidden');
+        } else {
+            infoPanel.classList.add('hidden');
+        }
+    }
+    
+    getAllFiles() {
+        return [...this.newFiles];
+    }
+    
+    getAllImageUrls() {
+        // 최종 순서대로 모든 이미지 URL 반환 (저장 시 사용)
+        // 새로운 파일들은 업로드 후 URL로 변환되어야 함
+        return [...this.existingImages];
+    }
+    
+    clear() {
+        this.reset();
+    }
+}
+
 class PortfolioManager {
     constructor() {
         this.portfolios = [];
@@ -8,6 +226,8 @@ class PortfolioManager {
         this.uploadInProgress = false;
         this.pendingFiles = [];
         this.firebaseService = null;
+        this.imageManager = new ImageManager(); // 새로운 이미지 관리자
+        window.imageManager = this.imageManager; // 전역 접근 가능하도록
         this.init();
     }
 
@@ -392,27 +612,18 @@ class PortfolioManager {
                 return;
             }
             
-            // 업로드할 파일들 수집
+            // 업로드할 파일들 수집 (ImageManager에서)
             const thumbnailFile = document.getElementById('thumbnail-file').files[0];
-            const detailFiles = Array.from(document.getElementById('detail-images-file').files); // 기존 방식으로 복원
+            const detailFiles = this.imageManager.getAllFiles(); // ImageManager에서 새로운 파일들 가져오기
             
-            // 기존 이미지 URL들 (DOM에서 현재 순서로 가져오기)
+            // 기존 이미지 URL들 (ImageManager에서)
             const existingThumbnail = this.currentEditId ? 
                 this.portfolios.find(p => p.id === this.currentEditId)?.thumbnail : null;
             
-            // 편집 모드에서 기존 이미지들 수집 (새로 추가된 파일 제외)
-            let existingImages = [];
-            if (this.currentEditId) {
-                const previewContainer = document.getElementById('detail-images-preview');
-                if (previewContainer && previewContainer.children.length > 0) {
-                    // DOM에서 기존 이미지만 수집 (isNewFile이 아닌 것들)
-                    existingImages = Array.from(previewContainer.children)
-                        .filter(item => item.dataset.isNewFile !== 'true')
-                        .map(item => item.dataset.imageUrl)
-                        .filter(url => url);
-                    console.log('📋 DOM에서 가져온 기존 이미지:', existingImages.map(url => url ? url.substring(url.lastIndexOf('/') + 1) : 'null'));
-                }
-            }
+            // 기존 이미지들 (ImageManager에서 가져오기)
+            let existingImages = this.imageManager.getAllImageUrls();
+            console.log('📋 ImageManager에서 가져온 기존 이미지:', existingImages.length, '개');
+            console.log('📋 ImageManager에서 가져온 새로운 파일:', detailFiles.length, '개');
             
         this.uploadInProgress = true;
         this.showSaveLoadingModal();
@@ -502,6 +713,9 @@ class PortfolioManager {
             
             // 파일 입력 필드 초기화 (중복 업로드 방지)
             this.clearFileInputs();
+            
+            // ImageManager도 초기화
+            this.imageManager.clear();
             
             // 편집 모드였다면 업데이트된 데이터로 폼을 다시 채움
             if (this.currentEditId) {
@@ -606,52 +820,20 @@ class PortfolioManager {
     }
 
     showExistingDetailImages(imagePaths) {
-        console.log('상세 이미지 경로들:', imagePaths);
-        const previewContainer = document.getElementById('detail-images-preview');
-        if (!previewContainer) return;
-
-        previewContainer.innerHTML = '';
-        
-        imagePaths.forEach((imagePath, index) => {
-            const imageItem = document.createElement('div');
-            imageItem.className = 'multiple-image-item';
-            imageItem.dataset.index = index;
-            imageItem.dataset.imageUrl = imagePath;
-            imageItem.dataset.originalIndex = index; // 원본 순서 저장
-            const imageUrl = imagePath.includes('?') ? `${imagePath}&t=${Date.now()}` : `${imagePath}?t=${Date.now()}`;
-            imageItem.innerHTML = `
-                <div class="image-order-number">${index + 1}</div>
-                <div class="image-arrow-controls">
-                    <button type="button" class="arrow-btn" onclick="moveImageUp(${index})" ${index === 0 ? 'disabled' : ''}>↑</button>
-                    <button type="button" class="arrow-btn" onclick="moveImageDown(${index})" ${index === imagePaths.length - 1 ? 'disabled' : ''}>↓</button>
-                </div>
-                <img src="${imageUrl}" class="multiple-preview-image" alt="Detail image ${index + 1}" loading="lazy">
-                <button type="button" class="remove-preview-btn" onclick="portfolioManager.removeExistingDetailImage(${index})">×</button>
-            `;
-            previewContainer.appendChild(imageItem);
-        });
-        
-        // 이미지 순서 정보 표시
-        this.showImageOrderInfo();
-        console.log('🔄 화살표 버튼 방식 이미지 순서 시스템 초기화 완료');
+        console.log('🔄 기존 상세 이미지 표시:', imagePaths.length, '개');
+        // 새로운 ImageManager를 사용하여 기존 이미지 설정
+        this.imageManager.setExistingImages(imagePaths);
     }
 
     clearImagePreviews() {
         const thumbnailPreview = document.getElementById('thumbnail-preview');
-        const detailImagesPreview = document.getElementById('detail-images-preview');
-        const imageOrderInfo = document.getElementById('image-order-info');
         
         if (thumbnailPreview) {
             thumbnailPreview.classList.add('hidden');
         }
         
-        if (detailImagesPreview) {
-            detailImagesPreview.innerHTML = '';
-        }
-        
-        if (imageOrderInfo) {
-            imageOrderInfo.classList.add('hidden');
-        }
+        // ImageManager를 사용하여 상세 이미지 정리
+        this.imageManager.clear();
         
         console.log('🧹 이미지 미리보기 모두 정리됨');
     }
@@ -821,87 +1003,16 @@ function previewDetailImages(input) {
         }
     }
     
-    const previewContainer = document.getElementById('detail-images-preview');
-    if (!previewContainer) return;
+    // 새로운 ImageManager를 사용하여 파일 추가
+    window.imageManager.addNewFiles(files);
     
-    // 기존 이미지들은 유지하고 새로운 이미지만 추가
-    const existingItemsCount = previewContainer.children.length;
+    // 파일 입력 초기화 (중복 방지)
+    input.value = '';
     
-    // 새로운 파일들만 미리보기에 추가 (파일 입력은 자동으로 새로운 파일들만 있음)
-    console.log(`📷 새로운 이미지 ${files.length}개 추가 시작, 기존 이미지: ${existingItemsCount}개`);
-    
-    files.forEach((file, i) => {
-        const imageItem = document.createElement('div');
-        imageItem.className = 'multiple-image-item';
-        const actualIndex = existingItemsCount + i; // 기존 이미지 개수를 고려한 실제 인덱스
-        
-        // 새로 추가된 파일임을 표시
-        imageItem.dataset.isNewFile = 'true';
-        
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const totalItems = previewContainer.children.length;
-            imageItem.innerHTML = `
-                <div class="image-order-number">${actualIndex + 1}</div>
-                <div class="image-arrow-controls">
-                    <button type="button" class="arrow-btn" onclick="moveImageUp(${actualIndex})" ${actualIndex === 0 ? 'disabled' : ''}>↑</button>
-                    <button type="button" class="arrow-btn" onclick="moveImageDown(${actualIndex})" ${actualIndex === totalItems - 1 ? 'disabled' : ''}>↓</button>
-                </div>
-                <img src="${e.target.result}" class="multiple-preview-image" alt="Detail image ${actualIndex + 1}" loading="lazy">
-                <button type="button" class="remove-preview-btn" onclick="removeDetailImageByIndex(${actualIndex})">×</button>
-            `;
-            
-            // 새로운 이미지가 추가된 후 모든 이미지의 순서와 버튼 상태 업데이트
-            updateImageOrder();
-            
-            // 이미지 순서 정보 표시
-            if (window.portfolioManager) {
-                window.portfolioManager.showImageOrderInfo();
-            }
-        };
-        reader.readAsDataURL(file);
-        
-        previewContainer.appendChild(imageItem);
-    });
-    
-    console.log(`📷 새로운 이미지 ${files.length}개 추가 완료, 총 이미지: ${previewContainer.children.length}개`);
+    console.log(`📷 새로운 이미지 ${files.length}개가 ImageManager에 추가됨`);
 }
 
-// 상세 이미지 개별 제거
-function removeDetailImageByIndex(index) {
-    const previewContainer = document.getElementById('detail-images-preview');
-    const fileInput = document.getElementById('detail-images-file');
-    if (!previewContainer || !fileInput) return;
-    
-    const items = Array.from(previewContainer.children);
-    if (index < 0 || index >= items.length) return;
-    
-    // DOM에서 해당 이미지 제거
-    items[index].remove();
-    
-    // 파일 입력에서도 해당 파일 제거 (기존 이미지는 파일이 없을 수 있음)
-    const files = Array.from(fileInput.files);
-    if (files.length > 0) {
-        const dt = new DataTransfer();
-        files.forEach((file, i) => {
-            if (i !== index) {
-                dt.items.add(file);
-            }
-        });
-        fileInput.files = dt.files;
-        console.log(`💾 파일 입력에서 제거됨: 남은 파일 ${dt.files.length}개`);
-    }
-    
-    // 모든 이미지의 순서 번호와 버튼 상태 업데이트
-    updateImageOrder();
-    
-    // 이미지 순서 정보 업데이트
-    if (window.portfolioManager) {
-        window.portfolioManager.showImageOrderInfo();
-    }
-    
-    console.log(`🗑️ 이미지 ${index + 1} 제거됨, 남은 이미지: ${previewContainer.children.length}개`);
-}
+// 기존 함수들은 ImageManager로 대체됨
 
 // 전역 스코프에 함수들 바인딩
 window.showAddForm = showAddForm;
@@ -969,166 +1080,7 @@ window.deletePortfolioSafe = function(id) {
 };
 
 // 새로운 이미지 순서 관리 시스템 (인스타그램 스타일)
-// 화살표 버튼 방식 이미지 순서 변경 시스템
-
-window.moveImageUp = function(index) {
-    console.log('⬆️ 이미지 위로 이동:', index);
-    moveImage(index, index - 1);
-};
-
-window.moveImageDown = function(index) {
-    console.log('⬇️ 이미지 아래로 이동:', index);
-    moveImage(index, index + 1);
-};
-
-function moveImage(fromIndex, toIndex) {
-    const container = document.getElementById('detail-images-preview');
-    if (!container) {
-        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
-        return;
-    }
-    
-    const items = Array.from(container.children);
-    
-    if (fromIndex < 0 || fromIndex >= items.length || toIndex < 0 || toIndex >= items.length) {
-        console.log('❌ 유효하지 않은 이동:', fromIndex, '->', toIndex);
-        return;
-    }
-    
-    console.log('🔄 이미지 이동:', fromIndex, '->', toIndex);
-    
-    // DOM에서 요소들을 새로운 순서로 재배치
-    const itemToMove = items[fromIndex];
-    
-    // 요소 제거
-    container.removeChild(itemToMove);
-    
-    // 새로운 위치에 삽입
-    if (toIndex >= items.length - 1) {
-        container.appendChild(itemToMove);
-    } else {
-        const nextItem = toIndex > fromIndex ? items[toIndex + 1] : items[toIndex];
-        container.insertBefore(itemToMove, nextItem);
-    }
-    
-    // 모든 요소의 순서 번호와 데이터셋 업데이트
-    updateImageOrder();
-    
-    // 메모리상 데이터 업데이트
-    updatePortfolioImageOrder();
-}
-
-function updateImageOrder() {
-    const container = document.getElementById('detail-images-preview');
-    if (!container) {
-        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
-        return;
-    }
-    
-    const items = Array.from(container.children);
-    
-    items.forEach((item, index) => {
-        // 순서 번호 업데이트
-        const orderNumber = item.querySelector('.image-order-number');
-        if (orderNumber) {
-            orderNumber.textContent = index + 1;
-        }
-        
-        // 데이터셋 업데이트
-        item.dataset.index = index;
-        
-        // 화살표 버튼 상태 업데이트
-        const upBtn = item.querySelector('.arrow-btn:first-child');
-        const downBtn = item.querySelector('.arrow-btn:last-child');
-        
-        if (upBtn) {
-            upBtn.disabled = (index === 0);
-            upBtn.onclick = () => moveImageUp(index);
-        }
-        
-        if (downBtn) {
-            downBtn.disabled = (index === items.length - 1);
-            downBtn.onclick = () => moveImageDown(index);
-        }
-    });
-    
-    console.log('✅ 이미지 순서 및 버튼 상태 업데이트 완료');
-}
-
-// 포트폴리오 이미지 순서 업데이트 (메모리만, 저장은 handleSubmit에서)
-function updatePortfolioImageOrder() {
-    const container = document.getElementById('detail-images-preview');
-    if (!container) {
-        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
-        return;
-    }
-    
-    const items = Array.from(container.children);
-    
-    // 현재 DOM 순서대로 이미지 URL 배열 생성
-    const newOrder = items.map(item => item.dataset.imageUrl).filter(url => url);
-    
-    console.log('📋 이미지 순서 메모리 업데이트:', {
-        totalImages: newOrder.length,
-        imageFiles: newOrder.map(url => url.substring(url.lastIndexOf('/') + 1))
-    });
-    
-    // 현재 편집 중인 포트폴리오의 이미지 순서 업데이트 (메모리만)
-    if (window.portfolioManager && window.portfolioManager.currentEditId) {
-        const portfolio = window.portfolioManager.portfolios.find(p => p.id === window.portfolioManager.currentEditId);
-        if (portfolio) {
-            // 메모리상 데이터만 업데이트 (Firestore 저장은 handleSubmit에서)
-            portfolio.images = newOrder;
-            console.log('✅ 메모리상 이미지 순서 업데이트됨');
-        } else {
-            console.error('❌ 편집 중인 포트폴리오를 찾을 수 없음');
-        }
-    } else {
-        console.error('❌ portfolioManager 또는 currentEditId가 없음');
-    }
-}
-
-// 화살표 버튼 방식 이미지 순서 관리 초기화 (기존 함수 유지)
-PortfolioManager.prototype.initializeImageOrdering = function() {
-    console.log('🔄 화살표 버튼 방식 초기화');
-    // 화살표 버튼 방식에서는 별도 초기화가 필요 없음
-    // updateImageOrder는 showExistingDetailImages에서 자동 호출됨
-};
-
-// 기존 인스타그램 스타일 함수들 모두 제거됨 - 화살표 버튼 방식으로 대체
-
-// 포트폴리오 이미지 순서 업데이트 (메모리만, 저장은 handleSubmit에서)
-function updatePortfolioImageOrder() {
-    const container = document.getElementById('detail-images-preview');
-    if (!container) {
-        console.error('❌ detail-images-preview 컨테이너를 찾을 수 없음');
-        return;
-    }
-    
-    const items = Array.from(container.children);
-    
-    // 현재 DOM 순서대로 이미지 URL 배열 생성
-    const newOrder = items.map(item => item.dataset.imageUrl).filter(url => url);
-    
-    console.log('📋 이미지 순서 메모리 업데이트:', {
-        totalImages: newOrder.length,
-        imageFiles: newOrder.map(url => url.substring(url.lastIndexOf('/') + 1))
-    });
-    
-    // 현재 편집 중인 포트폴리오의 이미지 순서 업데이트 (메모리만)
-    if (window.portfolioManager && window.portfolioManager.currentEditId) {
-        const portfolio = window.portfolioManager.portfolios.find(p => p.id === window.portfolioManager.currentEditId);
-        if (portfolio) {
-            // 메모리상 데이터만 업데이트 (Firestore 저장은 handleSubmit에서)
-            portfolio.images = newOrder;
-            console.log('✅ 메모리상 이미지 순서 업데이트됨');
-        } else {
-            console.error('❌ 편집 중인 포트폴리오를 찾을 수 없음');
-        }
-    } else {
-        console.error('❌ portfolioManager 또는 currentEditId가 없음');
-    }
-}
+// 기존 화살표 버튼 및 순서 관리 함수들은 ImageManager로 완전 대체됨
 
 // 앱 초기화
 let portfolioManager;
