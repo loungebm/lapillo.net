@@ -286,6 +286,8 @@ class PortfolioManager {
             project: 'Branding,Package design',
             client: 'PUMDT Korean medicine clinic',
             date: 'Feb, 2022',
+            category: 'design', // 카테고리 추가
+            subcategory: 'branding', // 서브카테고리 추가
             images: [
                 './img/design/pumdt/IMG_1842.jpg',
                 './img/design/pumdt/IMG_1855.jpg',
@@ -410,6 +412,7 @@ class PortfolioManager {
                         <p class="text-gray-600 text-sm mb-3 line-clamp-2">${(portfolio.koreanDescription || portfolio.description || '').substring(0, 100)}...</p>
                         ${portfolio.englishDescription ? `<p class="text-gray-500 text-xs mb-2 line-clamp-2">English: ${portfolio.englishDescription.substring(0, 80)}...</p>` : ''}
                         <div class="text-sm text-gray-500 mb-4">
+                            <p><strong>Category:</strong> ${portfolio.category || 'design'} ${portfolio.subcategory ? `- ${portfolio.subcategory}` : ''}</p>
                             <p><strong>Project:</strong> ${portfolio.project}</p>
                             <p><strong>Client:</strong> ${portfolio.client}</p>
                             <p><strong>Date:</strong> ${portfolio.date}</p>
@@ -497,7 +500,9 @@ class PortfolioManager {
             'portfolio-english-description': portfolio.englishDescription || '',
             'portfolio-project': portfolio.project || '',
             'portfolio-client': portfolio.client || '',
-            'portfolio-date': portfolio.date || ''
+            'portfolio-date': portfolio.date || '',
+            'portfolio-category': portfolio.category || 'design', // 기본값 설정
+            'portfolio-subcategory': portfolio.subcategory || ''
         };
         
         Object.entries(elements).forEach(([id, value]) => {
@@ -596,8 +601,10 @@ class PortfolioManager {
             const projectEl = document.getElementById('portfolio-project');
             const clientEl = document.getElementById('portfolio-client');
             const dateEl = document.getElementById('portfolio-date');
+            const categoryEl = document.getElementById('portfolio-category');
+            const subcategoryEl = document.getElementById('portfolio-subcategory');
             
-            if (!englishTitleEl || !koreanDescriptionEl || !projectEl || !clientEl || !dateEl) {
+            if (!englishTitleEl || !koreanDescriptionEl || !projectEl || !clientEl || !dateEl || !categoryEl) {
                 console.error('❌ 필수 입력 필드를 찾을 수 없습니다');
                 this.showAlert('페이지에 오류가 있습니다. 새로고침 후 다시 시도해주세요.', 'error');
                 return;
@@ -610,18 +617,21 @@ class PortfolioManager {
             const project = projectEl.value || '';
             const client = clientEl.value || '';
             const date = dateEl.value || '';
+            const category = categoryEl.value || '';
+            const subcategory = subcategoryEl ? subcategoryEl.value || '' : '';
         
             console.log('🔍 필드 값 확인:', {
                 englishTitle: englishTitle || '(비어있음)',
                 koreanDescription: koreanDescription || '(비어있음)',
                 project: project || '(비어있음)',
                 client: client || '(비어있음)',
-                date: date || '(비어있음)'
+                date: date || '(비어있음)',
+                category: category || '(비어있음)'
             });
             
-            if (!englishTitle || !koreanDescription || !project || !client || !date) {
+            if (!englishTitle || !koreanDescription || !project || !client || !date || !category) {
                 console.log('❌ 필수 필드 누락');
-                this.showAlert('모든 필수 필드를 입력해주세요. (영문 제목과 한글 설명은 필수입니다)', 'error');
+                this.showAlert('모든 필수 필드를 입력해주세요. (카테고리 선택은 필수입니다)', 'error');
                 return;
             }
             
@@ -718,6 +728,8 @@ class PortfolioManager {
                 project,
                 client,
                 date,
+                category,
+                subcategory,
                 thumbnail: thumbnailUrl,
                 images: imageUrls,
                 createdAt: this.currentEditId ? 
