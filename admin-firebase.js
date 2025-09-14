@@ -51,7 +51,7 @@ class ImageManager {
         
         if (isNewFile) {
             imageItem.dataset.isNewFile = 'true';
-            imageItem.dataset.fileIndex = this.newFiles.length - 1;
+            imageItem.dataset.fileIndex = index - this.existingImages.length;
             
             // 파일인 경우 FileReader 사용
             const reader = new FileReader();
@@ -61,8 +61,10 @@ class ImageManager {
             reader.readAsDataURL(source);
         } else {
             imageItem.dataset.imageUrl = source;
+            // 캐시 버스터 추가
+            const imageUrl = source.includes('?') ? `${source}&t=${Date.now()}` : `${source}?t=${Date.now()}`;
             // URL인 경우 바로 렌더링
-            this.renderImageContent(imageItem, source, index);
+            this.renderImageContent(imageItem, imageUrl, index);
         }
         
         this.container.appendChild(imageItem);
@@ -96,52 +98,43 @@ class ImageManager {
     moveUp(index) {
         if (index <= 0) return;
         
-        const totalExisting = this.existingImages.length;
+        // 전체 항목을 하나의 배열로 관리 (순서 변경 시에만)
+        const allItems = [...this.existingImages, ...this.newFiles];
+        [allItems[index], allItems[index - 1]] = [allItems[index - 1], allItems[index]];
         
-        if (index < totalExisting) {
-            // 기존 이미지 이동
-            [this.existingImages[index], this.existingImages[index - 1]] = 
-            [this.existingImages[index - 1], this.existingImages[index]];
-        } else {
-            // 새로운 파일 이동
-            const fileIndex = index - totalExisting;
-            if (fileIndex > 0) {
-                [this.newFiles[fileIndex], this.newFiles[fileIndex - 1]] = 
-                [this.newFiles[fileIndex - 1], this.newFiles[fileIndex]];
-            } else if (totalExisting > 0) {
-                // 새로운 파일을 기존 이미지 영역으로 이동
-                const file = this.newFiles.shift();
-                this.existingImages.push(file); // 임시로 추가 (실제로는 URL로 변환 필요)
-            }
-        }
+        // 다시 분리
+        this.existingImages = allItems.slice(0, this.existingImages.length);
+        this.newFiles = allItems.slice(this.existingImages.length);
         
         this.updateContainer();
+        console.log('⬆️ 이미지 순서 변경:', index, '->', index - 1);
     }
     
     moveDown(index) {
         const totalItems = this.existingImages.length + this.newFiles.length;
         if (index >= totalItems - 1) return;
         
-        const totalExisting = this.existingImages.length;
+        // 전체 항목을 하나의 배열로 관리 (순서 변경 시에만)
+        const allItems = [...this.existingImages, ...this.newFiles];
+        [allItems[index], allItems[index + 1]] = [allItems[index + 1], allItems[index]];
         
-        if (index < totalExisting - 1) {
-            // 기존 이미지 이동
-            [this.existingImages[index], this.existingImages[index + 1]] = 
-            [this.existingImages[index + 1], this.existingImages[index]];
-        } else if (index === totalExisting - 1 && this.newFiles.length > 0) {
-            // 기존 이미지 마지막을 새로운 파일과 교체
-            const lastExisting = this.existingImages.pop();
-            const firstNew = this.newFiles.shift();
-            this.existingImages.push(firstNew); // 임시
-            this.newFiles.unshift(lastExisting); // 임시
-        } else {
-            // 새로운 파일 이동
-            const fileIndex = index - totalExisting;
-            [this.newFiles[fileIndex], this.newFiles[fileIndex + 1]] = 
-            [this.newFiles[fileIndex + 1], this.newFiles[fileIndex]];
-        }
+        // 원래 길이 기준으로 다시 분리 (실제로는 타입으로 구분해야 함)
+        const originalExistingLength = this.existingImages.length;
+        this.existingImages = [];
+        this.newFiles = [];
+        
+        allItems.forEach((item, i) => {
+            if (typeof item === 'string') {
+                // URL인 경우 기존 이미지
+                this.existingImages.push(item);
+            } else {
+                // File 객체인 경우 새로운 파일
+                this.newFiles.push(item);
+            }
+        });
         
         this.updateContainer();
+        console.log('⬇️ 이미지 순서 변경:', index, '->', index + 1);
     }
     
     removeImage(index) {
@@ -209,9 +202,13 @@ class ImageManager {
     }
     
     getAllImageUrls() {
-        // 최종 순서대로 모든 이미지 URL 반환 (저장 시 사용)
-        // 새로운 파일들은 업로드 후 URL로 변환되어야 함
+        // 최종 순서대로 기존 이미지 URL만 반환 (저장 시 사용)
         return [...this.existingImages];
+    }
+    
+    getAllItems() {
+        // 전체 항목을 순서대로 반환 (URL + File 객체)
+        return [...this.existingImages, ...this.newFiles];
     }
     
     clear() {
@@ -656,20 +653,40 @@ class PortfolioManager {
                 return;
             }
             
-            // 상세 이미지들 업로드 (새로운 파일이 있을 때만)
+            // 상세 이미지들 업로드 및 순서 재정렬
             if (detailFiles.length > 0) {
-                console.log('📸 상세 이미지 업로드 시작:', detailFiles.length, '개');
+                console.log('📸 새로운 상세 이미지 업로드 시작:', detailFiles.length, '개');
                 const uploadPromises = detailFiles.map(file => 
                     this.firebaseService.uploadImage(file, `portfolios/${portfolioId}/details`)
                 );
                 const uploadResults = await Promise.all(uploadPromises);
                 const newImageUrls = uploadResults.map(result => result.url);
                 
-                // 새로운 파일이 업로드되었다면 기존 이미지에 추가
-                imageUrls = [...imageUrls, ...newImageUrls];
-                console.log('✅ 상세 이미지 업로드 완료:', newImageUrls.length, '개 추가');
-                console.log('📸 최종 이미지 배열:', imageUrls.length, '개');
+                console.log('✅ 새로운 이미지 업로드 완료:', newImageUrls.length, '개');
                 this.showAlert(`${detailFiles.length}개 이미지 업로드 완료`, 'success');
+                
+                // ImageManager의 순서에 따라 최종 이미지 배열 생성
+                const allItems = this.imageManager.getAllItems();
+                imageUrls = [];
+                
+                let existingIndex = 0;
+                let newIndex = 0;
+                
+                allItems.forEach(item => {
+                    if (typeof item === 'string') {
+                        // 기존 이미지 URL
+                        imageUrls.push(item);
+                        existingIndex++;
+                    } else {
+                        // 새로운 파일 (업로드된 URL로 대체)
+                        if (newIndex < newImageUrls.length) {
+                            imageUrls.push(newImageUrls[newIndex]);
+                            newIndex++;
+                        }
+                    }
+                });
+                
+                console.log('🔄 ImageManager 순서에 따른 최종 배열:', imageUrls.length, '개');
             } else {
                 console.log('📸 새로운 상세 이미지 없음, 기존 이미지만 사용:', imageUrls.length, '개');
             }
@@ -1012,7 +1029,30 @@ function previewDetailImages(input) {
     console.log(`📷 새로운 이미지 ${files.length}개가 ImageManager에 추가됨`);
 }
 
-// 기존 함수들은 ImageManager로 대체됨
+// ImageManager 전역 함수들 (호환성을 위해)
+function removeDetailImageByIndex(index) {
+    if (window.imageManager) {
+        window.imageManager.removeImage(index);
+    }
+}
+
+function moveImageUp(index) {
+    if (window.imageManager) {
+        window.imageManager.moveUp(index);
+    }
+}
+
+function moveImageDown(index) {
+    if (window.imageManager) {
+        window.imageManager.moveDown(index);
+    }
+}
+
+function updateImageOrder() {
+    if (window.imageManager) {
+        window.imageManager.updateAllIndices();
+    }
+}
 
 // 전역 스코프에 함수들 바인딩
 window.showAddForm = showAddForm;
@@ -1021,6 +1061,9 @@ window.previewThumbnail = previewThumbnail;
 window.removeThumbnailPreview = removeThumbnailPreview;
 window.previewDetailImages = previewDetailImages;
 window.removeDetailImageByIndex = removeDetailImageByIndex;
+window.moveImageUp = moveImageUp;
+window.moveImageDown = moveImageDown;
+window.updateImageOrder = updateImageOrder;
 
 // 전역 편집/삭제 함수들 (안전한 접근)
 window.editPortfolioSafe = function(id) {
