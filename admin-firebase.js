@@ -149,10 +149,6 @@ class PortfolioManager {
             detailImagesFile.value = '';
             console.log('🧹 상세 이미지 파일 입력 초기화');
         }
-        
-        // 대기 중인 파일들도 초기화
-        this.pendingFiles = [];
-        console.log('🧹 대기 중인 파일들 초기화');
     }
 
     // 포트폴리오 목록 렌더링
@@ -398,7 +394,7 @@ class PortfolioManager {
             
             // 업로드할 파일들 수집
             const thumbnailFile = document.getElementById('thumbnail-file').files[0];
-            const detailFiles = this.pendingFiles || []; // 새로운 방식: pendingFiles 사용
+            const detailFiles = Array.from(document.getElementById('detail-images-file').files); // 기존 방식으로 복원
             
             // 기존 이미지 URL들 (DOM에서 현재 순서로 가져오기)
             const existingThumbnail = this.currentEditId ? 
@@ -837,20 +833,25 @@ function previewDetailImages(input) {
     // 기존 이미지들은 유지하고 새로운 이미지만 추가
     const existingItemsCount = previewContainer.children.length;
     
-    // 새로운 파일들을 pendingFiles에 추가
-    if (window.portfolioManager) {
-        window.portfolioManager.pendingFiles.push(...files);
-        console.log(`📁 새로운 파일 ${files.length}개 대기열에 추가됨, 총 대기: ${window.portfolioManager.pendingFiles.length}개`);
-    }
+    // DataTransfer를 사용해서 파일 입력에 누적하기 (기존 방식으로 복원)
+    const dt = new DataTransfer();
+    
+    // 기존 파일들을 다시 추가
+    const existingFiles = Array.from(document.getElementById('detail-images-file').files || []);
+    existingFiles.forEach(file => dt.items.add(file));
+    
+    // 새로운 파일들 추가
+    files.forEach(file => dt.items.add(file));
+    
+    // 파일 입력 업데이트
+    document.getElementById('detail-images-file').files = dt.files;
+    
+    console.log(`💾 파일 입력 업데이트됨: 기존 ${existingFiles.length}개 + 새로운 ${files.length}개 = 총 ${dt.files.length}개`);
     
     files.forEach((file, i) => {
         const imageItem = document.createElement('div');
         imageItem.className = 'multiple-image-item';
         const actualIndex = existingItemsCount + i; // 기존 이미지 개수를 고려한 실제 인덱스
-        
-        // 새로 추가된 파일임을 표시하기 위한 데이터 속성 추가
-        imageItem.dataset.isNewFile = 'true';
-        imageItem.dataset.fileIndex = window.portfolioManager.pendingFiles.length - files.length + i;
         
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -878,44 +879,33 @@ function previewDetailImages(input) {
         previewContainer.appendChild(imageItem);
     });
     
-    // 파일 입력 초기화 (같은 파일을 다시 선택할 수 있도록)
-    input.value = '';
-    
     console.log(`📷 새로운 이미지 ${files.length}개 추가됨, 총 이미지: ${previewContainer.children.length}개`);
 }
 
 // 상세 이미지 개별 제거
 function removeDetailImageByIndex(index) {
     const previewContainer = document.getElementById('detail-images-preview');
-    if (!previewContainer) return;
+    const fileInput = document.getElementById('detail-images-file');
+    if (!previewContainer || !fileInput) return;
     
     const items = Array.from(previewContainer.children);
     if (index < 0 || index >= items.length) return;
     
-    const itemToRemove = items[index];
-    
-    // 새로 추가된 파일인 경우 pendingFiles에서도 제거
-    if (itemToRemove.dataset.isNewFile === 'true' && window.portfolioManager) {
-        const fileIndex = parseInt(itemToRemove.dataset.fileIndex);
-        if (fileIndex >= 0 && fileIndex < window.portfolioManager.pendingFiles.length) {
-            window.portfolioManager.pendingFiles.splice(fileIndex, 1);
-            console.log(`📁 대기열에서 파일 제거, 남은 대기 파일: ${window.portfolioManager.pendingFiles.length}개`);
-            
-            // 다른 새 파일들의 fileIndex 업데이트
-            const allItems = Array.from(previewContainer.children);
-            allItems.forEach((item, i) => {
-                if (item.dataset.isNewFile === 'true') {
-                    const currentFileIndex = parseInt(item.dataset.fileIndex);
-                    if (currentFileIndex > fileIndex) {
-                        item.dataset.fileIndex = currentFileIndex - 1;
-                    }
-                }
-            });
-        }
-    }
-    
     // DOM에서 해당 이미지 제거
-    itemToRemove.remove();
+    items[index].remove();
+    
+    // 파일 입력에서도 해당 파일 제거 (기존 이미지는 파일이 없을 수 있음)
+    const files = Array.from(fileInput.files);
+    if (files.length > 0) {
+        const dt = new DataTransfer();
+        files.forEach((file, i) => {
+            if (i !== index) {
+                dt.items.add(file);
+            }
+        });
+        fileInput.files = dt.files;
+        console.log(`💾 파일 입력에서 제거됨: 남은 파일 ${dt.files.length}개`);
+    }
     
     // 모든 이미지의 순서 번호와 버튼 상태 업데이트
     updateImageOrder();
