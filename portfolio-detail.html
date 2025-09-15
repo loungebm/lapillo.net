@@ -240,8 +240,13 @@
                     return;
                 }
 
-                // 현재 포트폴리오의 인덱스 설정
-                currentPortfolioIndex = allPortfolios.findIndex(p => p.id === portfolioId);
+                // 현재 포트폴리오와 같은 카테고리의 포트폴리오들만 필터링
+                const currentCategory = currentPortfolio.category || 'design';
+                categoryPortfolios = allPortfolios.filter(p => (p.category || 'design') === currentCategory);
+                console.log(`📂 ${currentCategory} 카테고리 포트폴리오:`, categoryPortfolios.length, '개');
+
+                // 카테고리 포트폴리오 배열에서의 인덱스 설정
+                currentPortfolioIndex = categoryPortfolios.findIndex(p => p.id === portfolioId);
                 
                 console.log('🎯 현재 포트폴리오 인덱스:', currentPortfolioIndex);
                 console.log('📄 로드된 포트폴리오:', currentPortfolio);
@@ -257,6 +262,7 @@
 
         // 전역 변수
         let allPortfolios = [];
+        let categoryPortfolios = []; // 현재 카테고리의 포트폴리오들만
         let currentPortfolioIndex = -1;
 
         // 포트폴리오 데이터 화면에 표시 (pumdt.html 스타일 적용)
@@ -275,8 +281,29 @@
 
             // 카테고리에 따른 네비게이션 underbar 설정
             if (window.navigationManager) {
-                await window.navigationManager.updateNavigation();
-                window.navigationManager.setActiveMenu(portfolio.category || 'design');
+                await window.navigationManager.loadMenus(); // 메뉴만 로드
+                window.navigationManager.renderNavigation(); // 네비게이션만 렌더링
+                
+                // 실시간 리스너 없이 바로 active 메뉴 설정
+                const categoryId = portfolio.category || 'design';
+                console.log(`🎯 포트폴리오 카테고리: ${categoryId}`);
+                
+                // 간단하게 DOM 직접 조작
+                document.querySelectorAll('[id^="nav-"], [id^="mobile-nav-"]').forEach(link => {
+                    link.classList.remove('border-b-2', 'border-gray-900');
+                });
+                
+                const desktopLink = document.getElementById(`nav-${categoryId}`);
+                const mobileLink = document.getElementById(`mobile-nav-${categoryId}`);
+                
+                if (desktopLink) {
+                    desktopLink.classList.add('border-b-2', 'border-gray-900');
+                    console.log(`✅ 데스크톱 ${categoryId} 메뉴 활성화`);
+                }
+                if (mobileLink) {
+                    mobileLink.classList.add('border-b-2', 'border-gray-900');
+                    console.log(`✅ 모바일 ${categoryId} 메뉴 활성화`);
+                }
             }
 
             // 데이터 채우기
@@ -328,18 +355,18 @@
             const prevTitle = document.getElementById('prev-title');
             const nextTitle = document.getElementById('next-title');
 
-            // 이전 포트폴리오
+            // 이전 포트폴리오 (같은 카테고리 내에서)
             if (currentPortfolioIndex > 0) {
-                const prevPortfolio = allPortfolios[currentPortfolioIndex - 1];
+                const prevPortfolio = categoryPortfolios[currentPortfolioIndex - 1];
                 prevTitle.textContent = prevPortfolio.englishTitle || prevPortfolio.title;
                 prevNav.style.display = 'block';
             } else {
                 prevNav.style.display = 'none';
             }
 
-            // 다음 포트폴리오
-            if (currentPortfolioIndex < allPortfolios.length - 1) {
-                const nextPortfolio = allPortfolios[currentPortfolioIndex + 1];
+            // 다음 포트폴리오 (같은 카테고리 내에서)
+            if (currentPortfolioIndex < categoryPortfolios.length - 1) {
+                const nextPortfolio = categoryPortfolios[currentPortfolioIndex + 1];
                 nextTitle.textContent = nextPortfolio.englishTitle || nextPortfolio.title;
                 nextNav.style.display = 'block';
             } else {
@@ -353,13 +380,13 @@
             
             if (direction === 'prev' && currentPortfolioIndex > 0) {
                 targetIndex = currentPortfolioIndex - 1;
-            } else if (direction === 'next' && currentPortfolioIndex < allPortfolios.length - 1) {
+            } else if (direction === 'next' && currentPortfolioIndex < categoryPortfolios.length - 1) {
                 targetIndex = currentPortfolioIndex + 1;
             } else {
                 return; // 범위를 벗어나면 아무것도 하지 않음
             }
 
-            const targetPortfolio = allPortfolios[targetIndex];
+            const targetPortfolio = categoryPortfolios[targetIndex];
             
             // URL 업데이트 (브라우저 히스토리에 추가)
             const newUrl = `portfolio-detail.html?id=${targetPortfolio.id}`;

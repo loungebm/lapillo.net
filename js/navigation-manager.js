@@ -6,6 +6,7 @@ class NavigationManager {
         this.menus = [];
         this.currentPage = this.getCurrentPage();
         this.menuListener = null; // 실시간 리스너 저장
+        this.activeMenuId = null; // 현재 활성 메뉴 ID 저장
     }
 
     // 현재 페이지 감지
@@ -216,10 +217,38 @@ class NavigationManager {
                 ${instagramHTML}
             `.trim();
         }
+
+        // 기존 활성 메뉴가 있으면 다시 설정
+        if (this.activeMenuId) {
+            console.log(`🔄 renderNavigation 후 활성 메뉴 복원: ${this.activeMenuId}`);
+            this.applyActiveMenu(this.activeMenuId);
+        }
     }
 
     // 현재 메뉴에 active 클래스 설정 (포트폴리오 상세 페이지용)
     setActiveMenu(categoryId) {
+        console.log(`🎯 setActiveMenu 호출됨 - 카테고리 ID: "${categoryId}"`);
+        
+        // 활성 메뉴 ID 저장
+        this.activeMenuId = categoryId;
+        
+        // 현재 메뉴 목록 확인
+        console.log(`📋 현재 활성 메뉴들:`, this.menus.map(m => ({id: m.id, name: m.name})));
+        
+        // 모든 네비게이션 링크에서 active 클래스 제거
+        const allNavLinks = document.querySelectorAll('[id^="nav-"], [id^="mobile-nav-"]');
+        allNavLinks.forEach(link => {
+            link.classList.remove('border-b-2', 'border-gray-900');
+        });
+
+        // 실제 DOM에 active 클래스 적용
+        this.applyActiveMenu(categoryId);
+
+        console.log(`📋 Active 메뉴 설정 완료: ${categoryId}`);
+    }
+
+    // 실제 DOM에 active 클래스 적용 (내부 함수)
+    applyActiveMenu(categoryId) {
         // 모든 네비게이션 링크에서 active 클래스 제거
         const allNavLinks = document.querySelectorAll('[id^="nav-"], [id^="mobile-nav-"]');
         allNavLinks.forEach(link => {
@@ -232,13 +261,13 @@ class NavigationManager {
         
         if (desktopLink) {
             desktopLink.classList.add('border-b-2', 'border-gray-900');
+            console.log(`🎨 applyActiveMenu - 데스크톱 활성화: nav-${categoryId}`);
         }
         
         if (mobileLink) {
             mobileLink.classList.add('border-b-2', 'border-gray-900');
+            console.log(`🎨 applyActiveMenu - 모바일 활성화: mobile-nav-${categoryId}`);
         }
-
-        console.log(`📋 Active 메뉴 설정: ${categoryId}`);
     }
 
     // 활성화된 메뉴 목록 반환

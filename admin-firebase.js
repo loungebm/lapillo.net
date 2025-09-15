@@ -648,6 +648,9 @@ class PortfolioManager {
                     ${portfolio.englishTitle || portfolio.title}
                     ${portfolio.koreanTitle ? `<br><span class="text-sm text-gray-500">${portfolio.koreanTitle}</span>` : ''}
                 </div>
+                <div class="portfolio-category">
+                    <span class="category-badge" data-category="${portfolio.category || 'design'}">${portfolio.category || 'design'}</span>
+                </div>
                 <div class="portfolio-actions">
                     <button onclick="editPortfolioSafe('${portfolio.id}')" class="btn-secondary">편집</button>
                     <button onclick="deletePortfolioSafe('${portfolio.id}')" class="btn-secondary text-red-600">삭제</button>

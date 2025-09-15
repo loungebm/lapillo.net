@@ -163,6 +163,48 @@
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
         }
+
+        .portfolio-category {
+            padding: 0 1rem;
+            flex-shrink: 0;
+            min-width: 100px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background-color: #f3f4f6;
+            color: #374151;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: capitalize;
+            border: 1px solid #e5e7eb;
+        }
+
+        .category-badge[data-category="design"] {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border-color: #bfdbfe;
+        }
+
+        .category-badge[data-category="illustration"] {
+            background-color: #fef3c7;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        .category-badge[data-category="artist"] {
+            background-color: #f3e8ff;
+            color: #7c3aed;
+            border-color: #e9d5ff;
+        }
+
+        .category-badge[data-category="exhibitioner"] {
+            background-color: #ecfdf5;
+            color: #059669;
+            border-color: #d1fae5;
+        }
         
         .hidden {
             display: none;
