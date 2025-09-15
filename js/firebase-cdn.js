@@ -180,9 +180,9 @@ class FirebaseService {
     // 기본 메뉴 생성
     async createDefaultMenus() {
         const defaultMenus = [
-            { id: 'design', name: 'Design', slug: 'design', order: 1, enabled: true, isDeletable: false },
-            { id: 'artwork', name: 'Artwork', slug: 'artwork', order: 2, enabled: true, isDeletable: true },
-            { id: 'exhibition', name: 'Exhibition', slug: 'exhibition', order: 3, enabled: true, isDeletable: true }
+            { id: 'design', name: 'Design', order: 1, enabled: true, isDeletable: false },
+            { id: 'artwork', name: 'Artwork', order: 2, enabled: true, isDeletable: true },
+            { id: 'exhibition', name: 'Exhibition', order: 3, enabled: true, isDeletable: true }
         ];
 
         try {
@@ -202,9 +202,9 @@ class FirebaseService {
     // 기본 메뉴 반환 (오프라인용)
     getDefaultMenus() {
         return [
-            { id: 'design', name: 'Design', slug: 'design', order: 1, enabled: true, isDeletable: false },
-            { id: 'artwork', name: 'Artwork', slug: 'artwork', order: 2, enabled: true, isDeletable: true },
-            { id: 'exhibition', name: 'Exhibition', slug: 'exhibition', order: 3, enabled: true, isDeletable: true }
+            { id: 'design', name: 'Design', order: 1, enabled: true, isDeletable: false },
+            { id: 'artwork', name: 'Artwork', order: 2, enabled: true, isDeletable: true },
+            { id: 'exhibition', name: 'Exhibition', order: 3, enabled: true, isDeletable: true }
         ];
     }
 

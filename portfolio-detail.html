@@ -261,6 +261,9 @@
 
         // 포트폴리오 데이터 화면에 표시 (pumdt.html 스타일 적용)
         async function displayPortfolio(portfolio) {
+            // 전역 변수로 설정 (NavigationManager에서 사용)
+            window.currentPortfolio = portfolio;
+            
             // 로딩 숨기기
             document.getElementById('loading').classList.add('hidden');
             

@@ -317,7 +317,7 @@ class PortfolioManager {
                     </div>
                     <div>
                         <h4 class="font-medium text-gray-900">${menu.name}</h4>
-                        <p class="text-sm text-gray-500">${menu.slug}.html</p>
+                        <p class="text-sm text-gray-500">ID: ${menu.id}</p>
                     </div>
                     ${menu.enabled ? 
                         '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">활성</span>' : 
@@ -378,7 +378,6 @@ class PortfolioManager {
         const elements = {
             'menu-id': menu.id,
             'menu-name': menu.name || '',
-            'menu-slug': menu.slug || '',
             'menu-order': menu.order || 1
         };
         
@@ -449,6 +448,34 @@ class PortfolioManager {
         } catch (error) {
             console.error('메뉴 삭제 실패:', error);
             this.showAlert('메뉴 삭제 중 오류가 발생했습니다: ' + error.message, 'error');
+        }
+    }
+
+    // 메뉴 ID 변경 시 기존 메뉴 삭제 후 새 ID로 포트폴리오 재할당
+    async deleteMenuAndReassign(oldId, newId) {
+        try {
+            console.log(`🔄 메뉴 ID 변경: ${oldId} → ${newId}`);
+            
+            // 해당 카테고리의 포트폴리오들을 새 ID로 변경
+            const categoryPortfolios = this.portfolios.filter(p => p.category === oldId);
+            
+            console.log(`📦 ${categoryPortfolios.length}개의 포트폴리오를 '${newId}' 카테고리로 이동`);
+            
+            for (const portfolio of categoryPortfolios) {
+                await this.firebaseService.savePortfolio({
+                    ...portfolio,
+                    category: newId
+                });
+            }
+
+            // 기존 메뉴 삭제
+            await this.firebaseService.deleteMenu(oldId);
+            
+            console.log(`✅ 메뉴 ID 변경 완료: ${oldId} → ${newId}`);
+            
+        } catch (error) {
+            console.error('❌ 메뉴 ID 변경 실패:', error);
+            throw error;
         }
     }
 
@@ -1025,55 +1052,75 @@ class PortfolioManager {
 
             // 필수 필드 검증
             const menuNameEl = document.getElementById('menu-name');
-            const menuSlugEl = document.getElementById('menu-slug');
             const menuOrderEl = document.getElementById('menu-order');
             
-            if (!menuNameEl || !menuSlugEl || !menuOrderEl) {
+            if (!menuNameEl || !menuOrderEl) {
                 console.error('❌ 메뉴 필수 입력 필드를 찾을 수 없습니다');
                 this.showAlert('페이지에 오류가 있습니다. 새로고침 후 다시 시도해주세요.', 'error');
                 return;
             }
             
             const menuName = menuNameEl.value.trim();
-            const menuSlug = menuSlugEl.value.trim().toLowerCase();
             const menuOrder = parseInt(menuOrderEl.value) || 1;
             
             console.log('🔍 메뉴 필드 값 확인:', {
                 name: menuName || '(비어있음)',
-                slug: menuSlug || '(비어있음)',
                 order: menuOrder
             });
             
-            if (!menuName || !menuSlug) {
+            if (!menuName) {
                 console.log('❌ 메뉴 필수 필드 누락');
-                this.showAlert('메뉴명과 URL 슬러그는 필수입니다.', 'error');
+                this.showAlert('메뉴명은 필수입니다.', 'error');
                 return;
             }
 
-            // URL 슬러그 유효성 검사
-            if (!/^[a-z0-9-]+$/.test(menuSlug)) {
-                this.showAlert('URL 슬러그는 영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.', 'error');
+            // 메뉴명 유효성 검사 (영문, 숫자, 하이픈만 허용)
+            if (!/^[a-zA-Z0-9-]+$/.test(menuName)) {
+                this.showAlert('메뉴명은 영문 대소문자, 숫자, 하이픈(-)만 사용 가능합니다.', 'error');
                 return;
             }
 
             // 중복 확인 (편집 중인 메뉴 제외)
             const existingMenu = this.menus.find(m => 
-                (m.slug === menuSlug || m.name === menuName) && 
-                m.id !== this.currentMenuEditId
+                m.name === menuName && m.id !== this.currentMenuEditId
             );
             
             if (existingMenu) {
-                this.showAlert('이미 존재하는 메뉴명 또는 URL 슬러그입니다.', 'error');
+                this.showAlert('이미 존재하는 메뉴명입니다.', 'error');
                 return;
             }
 
-            // 메뉴 ID 생성 (새로운 경우) 또는 기존 ID 사용
-            const menuId = this.currentMenuEditId || menuSlug;
+            // 메뉴 ID 처리
+            let menuId;
+            
+            if (this.currentMenuEditId) {
+                // 기존 메뉴 편집 시
+                const newId = menuName.toLowerCase();
+                if (this.currentMenuEditId !== newId) {
+                    // ID가 변경되는 경우 경고 및 확인
+                    const confirmChange = confirm(
+                        `메뉴명 변경으로 인해 메뉴 ID가 "${this.currentMenuEditId}"에서 "${newId}"로 변경됩니다.\n` +
+                        `이 변경사항은 해당 카테고리의 모든 포트폴리오에 영향을 줄 수 있습니다.\n\n` +
+                        `계속하시겠습니까?`
+                    );
+                    
+                    if (!confirmChange) {
+                        console.log('👤 사용자가 메뉴 ID 변경을 취소했습니다');
+                        return;
+                    }
+                    
+                    // 기존 메뉴 삭제 후 새로운 ID로 생성
+                    await this.deleteMenuAndReassign(this.currentMenuEditId, newId);
+                }
+                menuId = newId;
+            } else {
+                // 새 메뉴 생성 시
+                menuId = menuName.toLowerCase();
+            }
             
             const menuData = {
                 id: menuId,
                 name: menuName,
-                slug: menuSlug,
                 order: menuOrder,
                 enabled: true,
                 isDeletable: menuId !== 'design' // Design 메뉴는 삭제 불가
