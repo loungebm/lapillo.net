@@ -355,20 +355,7 @@
 
     <!-- Firebase Script -->
     <script>
-        // Firebase 설정
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
-            authDomain: "lapillo-portfolio.firebaseapp.com",
-            projectId: "lapillo-portfolio",
-            storageBucket: "lapillo-portfolio.firebasestorage.app",
-            messagingSenderId: "7087688501",
-            appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
-            measurementId: "G-T2BS7KX4G6"
-        };
-
-        // Firebase 초기화
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Firebase는 이미 firebase-cdn.js에서 초기화됨
 
         // URL에서 포트폴리오 ID 추출
         function getPortfolioIdFromUrl() {
@@ -382,26 +369,34 @@
                 const portfolioId = getPortfolioIdFromUrl();
                 
                 if (!portfolioId) {
+                    console.error('❌ URL에서 포트폴리오 ID를 찾을 수 없습니다');
                     showError();
                     return;
                 }
 
-                console.log('포트폴리오 ID:', portfolioId);
+                console.log('🔍 포트폴리오 ID:', portfolioId);
 
-                // 모든 포트폴리오 데이터를 먼저 로드 (네비게이션을 위해)
-                const allSnapshot = await db.collection('portfolios').orderBy('createdAt', 'desc').get();
-                allPortfolios = [];
-                allSnapshot.forEach((doc) => {
-                    allPortfolios.push({ id: doc.id, ...doc.data() });
-                });
+                // Firebase 서비스 대기
+                let retryCount = 0;
+                while (!window.firebaseService && retryCount < 10) {
+                    console.log(`⏳ Firebase 서비스 대기 중... (${retryCount + 1}/10)`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    retryCount++;
+                }
+                
+                if (!window.firebaseService) {
+                    throw new Error('Firebase 서비스를 초기화할 수 없습니다.');
+                }
 
-                console.log('전체 포트폴리오 로드 완료:', allPortfolios.length, '개');
+                // FirebaseService를 통한 포트폴리오 로드
+                allPortfolios = await window.firebaseService.getAllPortfolios();
+                console.log('✅ 전체 포트폴리오 로드 완료:', allPortfolios.length, '개');
 
                 // 현재 포트폴리오 찾기
                 const currentPortfolio = allPortfolios.find(p => p.id === portfolioId);
                 
                 if (!currentPortfolio) {
-                    console.error('포트폴리오를 찾을 수 없습니다:', portfolioId);
+                    console.error('❌ 포트폴리오를 찾을 수 없습니다:', portfolioId);
                     showError();
                     return;
                 }
@@ -409,14 +404,14 @@
                 // 현재 포트폴리오의 인덱스 설정
                 currentPortfolioIndex = allPortfolios.findIndex(p => p.id === portfolioId);
                 
-                console.log('현재 포트폴리오 인덱스:', currentPortfolioIndex);
-                console.log('로드된 포트폴리오:', currentPortfolio);
+                console.log('🎯 현재 포트폴리오 인덱스:', currentPortfolioIndex);
+                console.log('📄 로드된 포트폴리오:', currentPortfolio);
 
                 // 포트폴리오 데이터 표시
-                displayPortfolio(currentPortfolio);
+                await displayPortfolio(currentPortfolio);
 
             } catch (error) {
-                console.error('포트폴리오 로딩 실패:', error);
+                console.error('❌ 포트폴리오 로딩 실패:', error);
                 showError();
             }
         }
@@ -426,7 +421,7 @@
         let currentPortfolioIndex = -1;
 
         // 포트폴리오 데이터 화면에 표시 (pumdt.html 스타일 적용)
-        function displayPortfolio(portfolio) {
+        async function displayPortfolio(portfolio) {
             // 로딩 숨기기
             document.getElementById('loading').classList.add('hidden');
             
@@ -511,7 +506,7 @@
         }
 
         // 포트폴리오 네비게이션 함수
-        function navigateToPortfolio(direction) {
+        async function navigateToPortfolio(direction) {
             let targetIndex;
             
             if (direction === 'prev' && currentPortfolioIndex > 0) {
@@ -532,7 +527,7 @@
             currentPortfolioIndex = targetIndex;
             
             // 포트폴리오 표시
-            displayPortfolio(targetPortfolio);
+            await displayPortfolio(targetPortfolio);
             
             // 페이지 상단으로 스크롤
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -608,6 +603,17 @@
                 }
             });
         });
+
+        // 페이지 로드 시 포트폴리오 상세 데이터 로드
+        setTimeout(async () => {
+            console.log('🚀 포트폴리오 상세 페이지 로딩 시작');
+            console.log('📦 Firebase 상태:', !!window.firebase);
+            console.log('🔧 FirebaseService 상태:', !!window.firebaseService);
+            console.log('🧭 NavigationManager 상태:', !!window.navigationManager);
+            
+            await loadPortfolioDetail();
+            console.log('✅ 포트폴리오 상세 로딩 완료');
+        }, 1000);
     </script>
 </body>
 </html>
