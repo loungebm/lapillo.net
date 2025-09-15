@@ -50,6 +50,7 @@ class NavigationManager {
 
             this.menus = await window.firebaseService.getAllMenus();
             console.log('📋 네비게이션 메뉴 로드 완료:', this.menus.length, '개');
+            console.log('📋 로드된 메뉴 상세:', this.menus);
         } catch (error) {
             console.error('네비게이션 메뉴 로드 실패:', error);
             this.menus = this.getDefaultMenus();
@@ -72,6 +73,7 @@ class NavigationManager {
             // 새로운 실시간 리스너 설정
             this.menuListener = window.firebaseService.onMenusChange((menus) => {
                 console.log('🔄 실시간 메뉴 변경 감지:', menus.length, '개');
+                console.log('🔄 실시간 메뉴 상세:', menus.map(m => ({id: m.id, name: m.name, order: m.order})));
                 this.menus = menus;
                 
                 // 네비게이션 즉시 업데이트
@@ -98,18 +100,19 @@ class NavigationManager {
     // 기본 메뉴 (오프라인용)
     getDefaultMenus() {
         return [
-            { id: 'design', name: 'Design', slug: 'design', order: 1, enabled: true },
-            { id: 'artwork', name: 'Artwork', slug: 'artwork', order: 2, enabled: true },
-            { id: 'exhibition', name: 'Exhibition', slug: 'exhibition', order: 3, enabled: true }
+            { id: 'design', name: 'Design', order: 1, enabled: true },
+            { id: 'artwork', name: 'Artwork', order: 2, enabled: true },
+            { id: 'exhibition', name: 'Exhibition', order: 3, enabled: true }
         ];
     }
 
     // 데스크톱 네비게이션 생성
     generateDesktopNavigation() {
         const enabledMenus = this.menus.filter(menu => menu.enabled).sort((a, b) => a.order - b.order);
+        console.log('🖥️ 데스크톱 네비게이션 생성 - 활성 메뉴:', enabledMenus.map(m => ({id: m.id, name: m.name, order: m.order})));
         
         return enabledMenus.map(menu => {
-            const isActive = this.currentPage === menu.slug;
+            const isActive = this.currentPage === menu.id;
             const activeClass = isActive ? 'border-b-2 border-gray-900' : '';
             const href = `category.html?category=${menu.id}`;
             
@@ -122,7 +125,7 @@ class NavigationManager {
         const enabledMenus = this.menus.filter(menu => menu.enabled).sort((a, b) => a.order - b.order);
         
         return enabledMenus.map(menu => {
-            const isActive = this.currentPage === menu.slug;
+            const isActive = this.currentPage === menu.id;
             const activeClass = isActive ? 'border-b-2 border-gray-900' : '';
             const href = `category.html?category=${menu.id}`;
             
