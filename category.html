@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>lapillo</title>
+    <title>Category - lapillo</title>
     <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="studio-lapillo.css">
@@ -40,61 +40,16 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        // 모바일 메뉴 토글 기능 (컴포넌트 로드 후 실행)
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const hamburgerBtn = document.getElementById('hamburger-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-                const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
-            const hamburgerLines = document.querySelector('.hamburger-lines');
-            const closeLines = document.querySelector('.close-lines');
-            let isOpen = false;
+        // URL에서 카테고리 ID 추출
+        function getCategoryIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('category');
+        }
 
-            function toggleMenu() {
-                isOpen = !isOpen;
-                    if (mobileMenu) {
-                        mobileMenu.classList.toggle('open', isOpen);
-                    }
-                    if (hamburgerLines) {
-                        hamburgerLines.style.display = isOpen ? 'none' : 'block';
-                    }
-                    if (closeLines) {
-                        closeLines.style.display = isOpen ? 'block' : 'none';
-                    }
-                }
-
-                if (hamburgerBtn) {
-                    hamburgerBtn.addEventListener('click', toggleMenu);
-                }
-                if (closeMobileMenuBtn) {
-                    closeMobileMenuBtn.addEventListener('click', toggleMenu);
-                }
-
-                // 모바일 메뉴 링크 클릭 시 메뉴 닫기
-                if (mobileMenu) {
-            const menuLinks = mobileMenu.querySelectorAll('a');
-            menuLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (isOpen) {
-                        toggleMenu();
-                    }
-                });
-            });
-                }
-
-            // 화면 크기 변경 시 메뉴 닫기
-            window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768 && isOpen) {
-                    toggleMenu();
-                }
-            });
-            }, 1000); // 컴포넌트 로드 후 실행
-        });
-
-        // 모든 포트폴리오 로드 함수
-        async function loadAllPortfolios() {
+        // 카테고리별 포트폴리오 로드 함수
+        async function loadCategoryPortfolios(categoryId) {
             try {
-                console.log('🎨 모든 포트폴리오 로딩 시작...');
+                console.log(`🎨 ${categoryId} 카테고리 포트폴리오 로딩 시작...`);
                 
                 // Firebase 서비스 대기
                 let retryCount = 0;
@@ -109,8 +64,12 @@
                 }
                 
                 // FirebaseService를 통한 포트폴리오 로드
-                const portfolios = await window.firebaseService.getAllPortfolios();
-                console.log('✅ 로드된 포트폴리오:', portfolios.length, '개');
+                const allPortfolios = await window.firebaseService.getAllPortfolios();
+                const filteredPortfolios = allPortfolios.filter(p => 
+                    (p.category || 'design') === categoryId
+                );
+                
+                console.log(`✅ 로드된 ${categoryId} 포트폴리오:`, filteredPortfolios.length, '개');
                 
                 // 로딩 숨기기
                 const loadingElement = document.getElementById('loading');
@@ -123,41 +82,41 @@
                 if (gridContainer) {
                     gridContainer.innerHTML = ''; // 기존 내용 초기화
                     
-                    if (portfolios.length > 0) {
-                    portfolios.forEach(portfolio => {
-                        const gridItem = document.createElement('a');
-                        gridItem.className = 'grid-item';
-                        gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
-                        
-                        gridItem.innerHTML = `
-                            <div class="grid-image">
-                                <div class="grid-image-inner-wrapper">
+                    if (filteredPortfolios.length > 0) {
+                        filteredPortfolios.forEach(portfolio => {
+                            const gridItem = document.createElement('a');
+                            gridItem.className = 'grid-item';
+                            gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;
+                            
+                            gridItem.innerHTML = `
+                                <div class="grid-image">
+                                    <div class="grid-image-inner-wrapper">
                                         <img src="${portfolio.thumbnail || './img/placeholder.jpg'}" 
                                              alt="${portfolio.englishTitle || portfolio.title || 'Portfolio'}" 
                                              class="portfolio-image"
                                              onerror="this.src='./img/placeholder.jpg'">
                                     </div>
-                            </div>
-                            <div class="portfolio-text">
+                                </div>
+                                <div class="portfolio-text">
                                     <h3 class="portfolio-title">${portfolio.englishTitle || portfolio.title || 'Untitled'}</h3>
-                            </div>
-                        `;
-                        
-                        gridContainer.appendChild(gridItem);
-                    });
-                        console.log('✅ 포트폴리오 렌더링 완료');
+                                </div>
+                            `;
+                            
+                            gridContainer.appendChild(gridItem);
+                        });
+                        console.log(`✅ ${categoryId} 포트폴리오 렌더링 완료`);
                     } else {
                         gridContainer.innerHTML = `
                             <div class="col-span-full text-center py-12">
-                                <p class="text-gray-500">포트폴리오가 없습니다.</p>
+                                <p class="text-gray-500">${categoryId} 카테고리에 포트폴리오가 없습니다.</p>
                             </div>
                         `;
-                        console.log('⚠️ 포트폴리오 없음');
+                        console.log(`⚠️ ${categoryId} 포트폴리오 없음`);
                     }
                 }
                 
             } catch (error) {
-                console.error('❌ 포트폴리오 로드 에러:', error);
+                console.error(`❌ ${categoryId} 포트폴리오 로드 에러:`, error);
                 
                 const loadingElement = document.getElementById('loading');
                 if (loadingElement) {
@@ -168,9 +127,9 @@
                 if (gridContainer) {
                     gridContainer.innerHTML = `
                         <div class="text-center text-red-500 py-12">
-                            <p>포트폴리오 로딩에 실패했습니다.</p>
+                            <p>${categoryId} 포트폴리오 로딩에 실패했습니다.</p>
                             <p class="text-sm mt-2">오류: ${error.message}</p>
-                            <button onclick="loadAllPortfolios()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                            <button onclick="loadCategoryPortfolios('${categoryId}')" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
                                 다시 시도
                             </button>
                         </div>
@@ -178,10 +137,10 @@
                 }
             }
         }
-        
+
         // 페이지 로드 시 컴포넌트 로드 및 포트폴리오 로드
         document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🎨 메인 페이지 초기화 시작...');
+            console.log('🎨 카테고리 페이지 초기화 시작...');
             console.log('📦 Firebase 상태:', !!window.firebase);
             console.log('🔧 FirebaseService 상태:', !!window.firebaseService);
             console.log('🧭 NavigationManager 상태:', !!window.navigationManager);
@@ -191,17 +150,21 @@
             await loadComponent('footer-placeholder', 'components/footer.html');
             console.log('✅ 컴포넌트 로딩 완료');
 
+            const categoryId = getCategoryIdFromUrl() || 'design'; // 기본값 'design'
+            document.title = `${categoryId.charAt(0).toUpperCase() + categoryId.slice(1)} - lapillo`; // 페이지 타이틀 업데이트
+
             // NavigationManager 초기화 및 업데이트
             if (window.navigationManager) {
-                window.navigationManager.currentPage = 'index'; // 현재 페이지 설정
+                window.navigationManager.currentPage = categoryId; // 현재 페이지 설정
                 await window.navigationManager.updateNavigation();
+                window.navigationManager.setActiveMenu(categoryId); // 현재 카테고리 메뉴 활성화
                 console.log('✅ 네비게이션 업데이트 완료');
             } else {
                 console.warn('⚠️ NavigationManager가 없습니다');
             }
 
-            await loadAllPortfolios();
-            console.log('✅ 메인 페이지 초기화 완료');
+            await loadCategoryPortfolios(categoryId);
+            console.log('✅ 카테고리 페이지 초기화 완료');
         });
     </script>
 </body>
