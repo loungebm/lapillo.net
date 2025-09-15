@@ -642,26 +642,16 @@ class PortfolioManager {
         // Firebase에서 이미 createdAt 기준으로 정렬된 데이터를 사용
         console.log('🎨 포트폴리오 렌더링:', this.portfolios.map(p => ({id: p.id, title: p.englishTitle || p.title})));
         container.innerHTML = this.portfolios.map(portfolio => `
-            <div class="portfolio-card p-6">
-                <div class="flex items-start gap-4">
-                    <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="image-preview">
-                    <div class="flex-1">
-                        <h3 class="text-xl font-semibold mb-2">${portfolio.englishTitle || portfolio.title}</h3>
-                        ${portfolio.koreanTitle ? `<p class="text-lg text-gray-700 mb-2">${portfolio.koreanTitle}</p>` : ''}
-                        <p class="text-gray-600 text-sm mb-3 line-clamp-2">${(portfolio.koreanDescription || portfolio.description || '').substring(0, 100)}...</p>
-                        ${portfolio.englishDescription ? `<p class="text-gray-500 text-xs mb-2 line-clamp-2">English: ${portfolio.englishDescription.substring(0, 80)}...</p>` : ''}
-                        <div class="text-sm text-gray-500 mb-4">
-                            <p><strong>Category:</strong> ${portfolio.category || 'design'} ${portfolio.subcategory ? `- ${portfolio.subcategory}` : ''}</p>
-                            <p><strong>Project:</strong> ${portfolio.project}</p>
-                            <p><strong>Client:</strong> ${portfolio.client}</p>
-                            <p><strong>Date:</strong> ${portfolio.date}</p>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="editPortfolioSafe('${portfolio.id}')" class="btn-secondary">편집</button>
-                            <button onclick="deletePortfolioSafe('${portfolio.id}')" class="btn-secondary text-red-600">삭제</button>
-                            <a href="portfolio-detail.html?id=${portfolio.id}" target="_blank" class="btn-secondary">미리보기</a>
-                        </div>
-                    </div>
+            <div class="portfolio-row">
+                <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="portfolio-thumbnail">
+                <div class="portfolio-title">
+                    ${portfolio.englishTitle || portfolio.title}
+                    ${portfolio.koreanTitle ? `<br><span class="text-sm text-gray-500">${portfolio.koreanTitle}</span>` : ''}
+                </div>
+                <div class="portfolio-actions">
+                    <button onclick="editPortfolioSafe('${portfolio.id}')" class="btn-secondary">편집</button>
+                    <button onclick="deletePortfolioSafe('${portfolio.id}')" class="btn-secondary text-red-600">삭제</button>
+                    <a href="portfolio-detail.html?id=${portfolio.id}" target="_blank" class="btn-secondary">미리보기</a>
                 </div>
             </div>
         `).join('');
