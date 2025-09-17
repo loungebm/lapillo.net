@@ -669,7 +669,7 @@ class PortfolioManager {
                 <div class="portfolio-actions">
                     <button onclick="editPortfolioSafe('${portfolio.id}')" class="btn-secondary">편집</button>
                     <button onclick="deletePortfolioSafe('${portfolio.id}')" class="btn-secondary text-red-600">삭제</button>
-                    <a href="portfolio-detail.html?id=${portfolio.id}" target="_blank" class="btn-secondary">미리보기</a>
+                    <a href="${portfolio.textOnly ? 'text-detail.html' : 'portfolio-detail.html'}?id=${portfolio.id}" target="_blank" class="btn-secondary">미리보기</a>
                 </div>
             </div>
         `).join('');
