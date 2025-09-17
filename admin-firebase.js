@@ -773,6 +773,20 @@ class PortfolioManager {
             }
         }
 
+        // Text Only 전용 필드 값 채우기
+        try {
+            const leftEl = document.getElementById('textonly-left');
+            const rightEl = document.getElementById('textonly-right');
+            if (leftEl) {
+                leftEl.value = portfolio.textLeft || portfolio.description || portfolio.koreanDescription || '';
+            }
+            if (rightEl) {
+                rightEl.value = portfolio.textRight || '';
+            }
+        } catch (e) {
+            console.warn('⚠️ Text Only 필드 채우기 중 경고:', e);
+        }
+
         // 기존 이미지 미리보기 표시 (Text Only 모드가 아닐 때만)
         console.log('🖼️ 편집할 포트폴리오 이미지 정보:', {
             id: portfolio.id,

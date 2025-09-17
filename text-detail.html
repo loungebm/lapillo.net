@@ -131,12 +131,19 @@
                 const leftContentRaw = content.textLeft || content.description || content.koreanDescription || '';
                 const rightContentRaw = content.textRight || leftContentRaw;
                 const koreanContent = leftContentRaw;
-                const koreanParagraphs = koreanContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
+                // 단일 줄바꿈도 반영되도록 처리 (\n -> <br>)
+                const koreanParagraphs = koreanContent
+                    .split('\n\n')
+                    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`) 
+                    .join('');
                 document.getElementById('korean-content').innerHTML = koreanParagraphs;
 
                 // 우측 컬럼
                 const englishContent = rightContentRaw;
-                const englishParagraphs = englishContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
+                const englishParagraphs = englishContent
+                    .split('\n\n')
+                    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`) 
+                    .join('');
                 document.getElementById('english-content').innerHTML = englishParagraphs;
 
                 // 로딩 숨기고 컨텐츠 표시
