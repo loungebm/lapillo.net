@@ -42,20 +42,33 @@ class FirebaseService {
         }
     }
 
-    // 카테고리별 포트폴리오 가져오기
+    // 카테고리별 포트폴리오 가져오기 (클라이언트 정렬로 인덱스 이슈 회피)
     async getPortfoliosByCategory(category) {
         try {
             const snapshot = await db.collection(this.portfoliosCollection)
                 .where('category', '==', category)
-                .orderBy('createdAt', 'desc')
                 .get();
             const portfolios = [];
             snapshot.forEach((doc) => {
                 portfolios.push({ id: doc.id, ...doc.data() });
             });
+            // createdAt 기준 내림차순 정렬 (문자열/Date 모두 처리)
+            portfolios.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             return portfolios;
         } catch (error) {
             console.error('Error getting portfolios by category:', error);
+            throw error;
+        }
+    }
+
+    // 단일 포트폴리오 가져오기 (id)
+    async getPortfolioById(id) {
+        try {
+            const docRef = await db.collection(this.portfoliosCollection).doc(id).get();
+            if (!docRef.exists) return null;
+            return { id: docRef.id, ...docRef.data() };
+        } catch (error) {
+            console.error('Error getting portfolio by id:', error);
             throw error;
         }
     }

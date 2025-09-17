@@ -73,21 +73,23 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        // URL에서 카테고리 파라미터 추출
+        // URL 파라미터 추출
         function getCategoryFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get('category');
+        }
+        function getIdFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
         }
 
         // Text-Only 컨텐츠 로드
         async function loadTextContent() {
             try {
+                const id = getIdFromURL();
                 const category = getCategoryFromURL();
-                if (!category) {
-                    throw new Error('카테고리가 지정되지 않았습니다.');
-                }
 
-                console.log('📝 Text-Only 페이지 로딩 시작 - 카테고리:', category);
+                console.log('📝 Text-Only 페이지 로딩 시작 - id:', id, 'category:', category);
 
                 // Firebase 서비스 대기
                 let retryCount = 0;
@@ -101,18 +103,25 @@
                     throw new Error('Firebase 서비스를 초기화할 수 없습니다.');
                 }
 
-                // 해당 카테고리의 Text-Only 포트폴리오 로드
-                const portfolios = await window.firebaseService.getPortfoliosByCategory(category);
-                const textOnlyPortfolios = portfolios.filter(p => p.textOnly);
-
-                console.log('📝 로드된 Text-Only 포트폴리오:', textOnlyPortfolios.length, '개');
-
-                if (textOnlyPortfolios.length === 0) {
-                    throw new Error('해당 카테고리의 Text-Only 컨텐츠가 없습니다.');
+                let content = null;
+                if (id) {
+                    // id가 지정된 경우 해당 문서 로드
+                    content = await window.firebaseService.getPortfolioById(id);
+                    if (!content || !content.textOnly) {
+                        throw new Error('유효한 Text-Only 컨텐츠가 아닙니다.');
+                    }
+                } else if (category) {
+                    // 카테고리만 지정된 경우 해당 카테고리의 최신 Text-Only 문서 사용
+                    const portfolios = await window.firebaseService.getPortfoliosByCategory(category);
+                    const textOnlyPortfolios = portfolios.filter(p => p.textOnly);
+                    console.log('📝 로드된 Text-Only 포트폴리오:', textOnlyPortfolios.length, '개');
+                    if (textOnlyPortfolios.length === 0) {
+                        throw new Error('해당 카테고리의 Text-Only 컨텐츠가 없습니다.');
+                    }
+                    content = textOnlyPortfolios[0];
+                } else {
+                    throw new Error('id 또는 category 파라미터가 필요합니다.');
                 }
-
-                // 첫 번째 (최신) Text-Only 포트폴리오 사용
-                const content = textOnlyPortfolios[0];
                 
                 // 페이지 제목 설정
                 const pageTitle = content.koreanTitle || content.englishTitle || content.title || 'Text Only';
@@ -156,14 +165,14 @@
 
             // NavigationManager 초기화 및 업데이트
             if (window.navigationManager) {
-                const category = getCategoryFromURL();
-                window.navigationManager.currentPage = category; // 현재 페이지 설정
+                const id = getIdFromURL();
+                let category = getCategoryFromURL();
+                // id로 접근 시에는 로드 후 세팅되므로 임시로 현재값 유지
+                window.navigationManager.currentPage = category || window.navigationManager.currentPage;
                 await window.navigationManager.updateNavigation();
                 
                 // Text-Only 페이지에서는 해당 카테고리 메뉴를 활성화
-                if (category) {
-                    window.navigationManager.setActiveMenu(category);
-                }
+                if (category) window.navigationManager.setActiveMenu(category);
                 console.log('✅ 네비게이션 업데이트 완료');
             } else {
                 console.warn('⚠️ NavigationManager가 없습니다');
