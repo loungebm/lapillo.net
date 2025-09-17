@@ -1569,7 +1569,13 @@ async function initializeApp() {
             // 비동기 초기화 완료까지 대기
             await portfolioManager.init();
             
+            // TextPageManager 초기화
+            textPageManager = new TextPageManager();
+            await textPageManager.loadTextPages();
+            window.textPageManager = textPageManager;
+            
             console.log('✅ PortfolioManager 완전 초기화 완료');
+            console.log('✅ TextPageManager 초기화 완료');
             console.log('🔧 편집/삭제 함수 테스트:', {
                 editFunction: typeof window.editPortfolioSafe,
                 deleteFunction: typeof window.deletePortfolioSafe,
@@ -1600,6 +1606,149 @@ async function initializeApp() {
         setTimeout(initializeApp, 500);
     }
 }
+
+// 텍스트 페이지 관리 클래스
+class TextPageManager {
+    constructor() {
+        this.textPages = {};
+        this.currentEditPage = null;
+    }
+
+    // 텍스트 페이지 로드
+    async loadTextPages() {
+        try {
+            console.log('📝 텍스트 페이지 로딩 시작...');
+            
+            const aboutData = await window.firebaseService.getTextPage('about');
+            const contactData = await window.firebaseService.getTextPage('contact');
+            
+            this.textPages = {
+                about: aboutData || {
+                    leftColumn: 'lapillo는 디자이너와 작가를 활동하는 김혁원과 강보영이 운영하는 그래픽 스튜디오로 브랜드 디자인 프로젝트와 개인 아트워크를 선보입니다.',
+                    rightColumn: '스튜디오의 이름인 Lapillo는 화산 자갈이라는 뜻으로 자갈의 개성있는 형태로 거름받니다. 이렇게 시시각각 변화하는 시간 속 - 우리 모두가 각기 다른 빛과 모양의 조약돌 - 이라는 뜻을 담고자 하였습니다.'
+                },
+                contact: contactData || {
+                    leftColumn: 'studio.lapillo@gmail.com',
+                    rightColumn: 'lapillo와 함께 나만의 취향과 색을 찾는 경험을 하시길 바랍니다.'
+                }
+            };
+            
+            this.renderTextPageForm();
+            console.log('✅ 텍스트 페이지 로딩 완료');
+        } catch (error) {
+            console.error('❌ 텍스트 페이지 로딩 실패:', error);
+        }
+    }
+
+    // 텍스트 페이지 폼 렌더링
+    renderTextPageForm() {
+        const aboutSection = this.createTextPageSection('about', 'About 페이지');
+        const contactSection = this.createTextPageSection('contact', 'Contact 페이지');
+        
+        // 기존 텍스트 페이지 섹션이 있다면 제거
+        const existingSection = document.getElementById('text-pages-section');
+        if (existingSection) {
+            existingSection.remove();
+        }
+        
+        // 새 섹션 생성
+        const section = document.createElement('div');
+        section.id = 'text-pages-section';
+        section.className = 'form-section p-6 mb-8';
+        section.innerHTML = `
+            <h2 class="text-2xl font-semibold mb-6">About & Contact 페이지 관리</h2>
+            <div class="space-y-6">
+                ${aboutSection}
+                ${contactSection}
+            </div>
+        `;
+        
+        // 포트폴리오 목록 섹션 앞에 삽입
+        const portfolioListSection = document.querySelector('.form-section:last-child');
+        if (portfolioListSection) {
+            portfolioListSection.parentNode.insertBefore(section, portfolioListSection);
+        }
+    }
+
+    // 개별 텍스트 페이지 섹션 생성
+    createTextPageSection(pageType, title) {
+        const data = this.textPages[pageType];
+        return `
+            <div class="border border-gray-200 rounded-lg p-4">
+                <h3 class="text-lg font-semibold mb-4">${title}</h3>
+                <form onsubmit="textPageManager.saveTextPage(event, '${pageType}')" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">왼쪽 컬럼</label>
+                        <textarea 
+                            id="${pageType}-left" 
+                            class="form-textarea" 
+                            rows="4" 
+                            placeholder="왼쪽 컬럼 내용을 입력하세요"
+                        >${data.leftColumn}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">오른쪽 컬럼</label>
+                        <textarea 
+                            id="${pageType}-right" 
+                            class="form-textarea" 
+                            rows="4" 
+                            placeholder="오른쪽 컬럼 내용을 입력하세요"
+                        >${data.rightColumn}</textarea>
+                    </div>
+                    <div class="md:col-span-2 flex justify-end gap-3">
+                        <button type="submit" class="btn-primary">저장</button>
+                        <a href="${pageType}.html" target="_blank" class="btn-secondary">미리보기</a>
+                    </div>
+                </form>
+            </div>
+        `;
+    }
+
+    // 텍스트 페이지 저장
+    async saveTextPage(event, pageType) {
+        event.preventDefault();
+        
+        try {
+            const leftColumn = document.getElementById(`${pageType}-left`).value;
+            const rightColumn = document.getElementById(`${pageType}-right`).value;
+            
+            const data = {
+                leftColumn,
+                rightColumn,
+                updatedAt: new Date().toISOString()
+            };
+            
+            await window.firebaseService.saveTextPage(pageType, data);
+            this.textPages[pageType] = data;
+            
+            this.showAlert(`${pageType.toUpperCase()} 페이지가 저장되었습니다.`, 'success');
+            console.log(`✅ ${pageType} 페이지 저장 완료`);
+        } catch (error) {
+            console.error(`❌ ${pageType} 페이지 저장 실패:`, error);
+            this.showAlert(`${pageType.toUpperCase()} 페이지 저장에 실패했습니다.`, 'error');
+        }
+    }
+
+    // 알림 표시
+    showAlert(message, type = 'success') {
+        const container = document.getElementById('alert-container');
+        if (!container) return;
+        
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const alertElement = document.createElement('div');
+        alertElement.className = `alert ${alertClass}`;
+        alertElement.textContent = message;
+        
+        container.appendChild(alertElement);
+        
+        setTimeout(() => {
+            alertElement.remove();
+        }, 5000);
+    }
+}
+
+// 전역 textPageManager 인스턴스
+let textPageManager;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔄 DOM 로딩 완료');

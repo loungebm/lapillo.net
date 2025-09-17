@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - lapillo</title>
+    <link href="https://cdn.jsdelivr.net/npm/@shadcn/ui@latest/dist/tailwind.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="studio-lapillo.css">
+    
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat-storage.js"></script>
+    
+    <!-- Firebase 설정 및 컴포넌트 시스템 -->
+    <script src="js/firebase-cdn.js"></script>
+    <script src="js/component-loader.js"></script>
+    <script src="js/navigation-manager.js"></script>
+</head>
+<body class="bg-white font-sans">
+    <!-- Header Component Placeholder -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="py-6">
+        <div class="project-detail-wrapper">
+            <!-- Text Section - 2 Columns -->
+            <div class="project-text-section">
+                <!-- Left Column -->
+                <div class="project-text-left">
+                    <div class="project-description">
+                        <p id="contact-left-content">
+                            studio.lapillo@gmail.com
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="project-text-right">
+                    <div class="project-description">
+                        <p id="contact-right-content">
+                            lapillo와 함께 나만의 취향과 색을 찾는 경험을 하시길 바랍니다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Component Placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // 모바일 메뉴 토글 기능 (컴포넌트 로드 후 실행)
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                const hamburgerBtn = document.getElementById('hamburger-btn');
+                const mobileMenu = document.getElementById('mobile-menu');
+                const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
+                const hamburgerLines = document.querySelector('.hamburger-lines');
+                const closeLines = document.querySelector('.close-lines');
+                let isOpen = false;
+
+                function toggleMenu() {
+                    isOpen = !isOpen;
+                    if (mobileMenu) {
+                        mobileMenu.classList.toggle('open', isOpen);
+                    }
+                    if (hamburgerLines) {
+                        hamburgerLines.style.display = isOpen ? 'none' : 'block';
+                    }
+                    if (closeLines) {
+                        closeLines.style.display = isOpen ? 'block' : 'none';
+                    }
+                }
+
+                if (hamburgerBtn) {
+                    hamburgerBtn.addEventListener('click', toggleMenu);
+                }
+                if (closeMobileMenuBtn) {
+                    closeMobileMenuBtn.addEventListener('click', toggleMenu);
+                }
+
+                // 모바일 메뉴 링크 클릭 시 메뉴 닫기
+                if (mobileMenu) {
+                    const menuLinks = mobileMenu.querySelectorAll('a');
+                    menuLinks.forEach(link => {
+                        link.addEventListener('click', () => {
+                            if (isOpen) {
+                                toggleMenu();
+                            }
+                        });
+                    });
+                }
+
+                // 화면 크기 변경 시 메뉴 닫기
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 768 && isOpen) {
+                        toggleMenu();
+                    }
+                });
+            }, 1000); // 컴포넌트 로드 후 실행
+        });
+
+        // Contact 페이지 컨텐츠 로드
+        async function loadContactContent() {
+            try {
+                console.log('📞 Contact 페이지 컨텐츠 로딩 시작...');
+                
+                // Firebase 서비스 대기
+                let retryCount = 0;
+                while (!window.firebaseService && retryCount < 10) {
+                    console.log(`⏳ Firebase 서비스 대기 중... (${retryCount + 1}/10)`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    retryCount++;
+                }
+                
+                if (!window.firebaseService) {
+                    throw new Error('Firebase 서비스를 초기화할 수 없습니다.');
+                }
+                
+                // Contact 페이지 데이터 로드
+                const contactData = await window.firebaseService.getTextPage('contact');
+                console.log('✅ Contact 데이터 로드:', contactData);
+                
+                if (contactData) {
+                    // 내용 업데이트
+                    const leftContent = document.getElementById('contact-left-content');
+                    const rightContent = document.getElementById('contact-right-content');
+                    
+                    if (leftContent && contactData.leftColumn) {
+                        leftContent.textContent = contactData.leftColumn;
+                    }
+                    
+                    if (rightContent && contactData.rightColumn) {
+                        rightContent.textContent = contactData.rightColumn;
+                    }
+                    
+                    console.log('✅ Contact 페이지 컨텐츠 업데이트 완료');
+                }
+                
+            } catch (error) {
+                console.error('❌ Contact 페이지 컨텐츠 로드 에러:', error);
+                // 에러가 발생해도 기본 컨텐츠는 유지
+            }
+        }
+        
+        // 페이지 로드 시 컴포넌트 로드 및 컨텐츠 로드
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('📞 Contact 페이지 초기화 시작...');
+
+            console.log('🔄 컴포넌트 로딩 시작...');
+            await loadComponent('header-placeholder', 'components/header.html');
+            await loadComponent('footer-placeholder', 'components/footer.html');
+            console.log('✅ 컴포넌트 로딩 완료');
+
+            // NavigationManager 초기화 및 업데이트
+            if (window.navigationManager) {
+                window.navigationManager.currentPage = 'contact'; // 현재 페이지 설정
+                await window.navigationManager.updateNavigation();
+                console.log('✅ 네비게이션 업데이트 완료');
+            } else {
+                console.warn('⚠️ NavigationManager가 없습니다');
+            }
+
+            await loadContactContent();
+            console.log('✅ Contact 페이지 초기화 완료');
+        });
+    </script>
+</body>
+</html>
