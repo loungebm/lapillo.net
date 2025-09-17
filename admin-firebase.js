@@ -332,6 +332,7 @@ class PortfolioManager {
                     </div>
                 </div>
                 <div class="flex gap-2">
+                    <button onclick="toggleMenuEnabled('${menu.id}', ${menu.enabled ? 'true' : 'false'})" class="btn-secondary">${menu.enabled ? '비활성' : '활성'}</button>
                     <button onclick="editMenuSafe('${menu.id}')" class="btn-secondary text-sm">편집</button>
                     ${menu.isDeletable ? 
                         `<button onclick="deleteMenuSafe('${menu.id}')" class="btn-secondary text-sm text-red-600">삭제</button>` : 
@@ -340,6 +341,25 @@ class PortfolioManager {
                 </div>
             </div>
         `).join('');
+    }
+
+    // 메뉴 활성/비활성 토글
+    async toggleMenuEnabled(menuId, currentEnabled) {
+        try {
+            const menu = this.menus.find(m => m.id === menuId);
+            if (!menu) {
+                this.showAlert('메뉴를 찾을 수 없습니다.', 'error');
+                return;
+            }
+            const updated = { ...menu, enabled: !currentEnabled };
+            await this.firebaseService.saveMenu(updated);
+            await this.loadMenus();
+            this.renderMenus();
+            this.showAlert(`메뉴가 '${updated.enabled ? '활성' : '비활성'}' 상태로 변경되었습니다.`, 'success');
+        } catch (error) {
+            console.error('메뉴 활성화 상태 변경 실패:', error);
+            this.showAlert('상태 변경 중 오류가 발생했습니다.', 'error');
+        }
     }
 
     // 메뉴 추가 폼 표시
@@ -1521,6 +1541,11 @@ window.moveImageDown = moveImageDown;
 window.updateImageOrder = updateImageOrder;
 
 // 전역 편집/삭제 함수들 (안전한 접근)
+window.toggleMenuEnabled = function(id, enabled) {
+    if (window.portfolioManager && typeof window.portfolioManager.toggleMenuEnabled === 'function') {
+        window.portfolioManager.toggleMenuEnabled(id, enabled);
+    }
+};
 window.editPortfolioSafe = function(id) {
     console.log('🔧 편집 버튼 클릭:', id);
     console.log('🔧 portfolioManager 상태:', window.portfolioManager);
