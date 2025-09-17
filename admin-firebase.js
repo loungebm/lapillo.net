@@ -876,7 +876,8 @@ class PortfolioManager {
             const koreanTitleEl = document.getElementById('portfolio-korean-title');
             const englishDescriptionEl = document.getElementById('portfolio-english-description');
             const koreanDescriptionEl = document.getElementById('portfolio-korean-description');
-            const textOnlyContentEl = document.getElementById('textonly-content');
+            const textOnlyLeftEl = document.getElementById('textonly-left');
+            const textOnlyRightEl = document.getElementById('textonly-right');
             const projectEl = document.getElementById('portfolio-project');
             const clientEl = document.getElementById('portfolio-client');
             const dateEl = document.getElementById('portfolio-date');
@@ -890,8 +891,8 @@ class PortfolioManager {
                 requiredFields.push(englishTitleEl, koreanDescriptionEl);
                 requiredFields.push(projectEl, clientEl, dateEl);
             } else {
-                // 텍스트온리: 단일 내용 필수
-                requiredFields.push(textOnlyContentEl);
+                // 텍스트온리: 좌측 내용 필수, 우측은 선택
+                requiredFields.push(textOnlyLeftEl);
             }
             
             if (requiredFields.some(field => !field)) {
@@ -904,7 +905,8 @@ class PortfolioManager {
             const koreanTitle = isTextOnlyMode ? '' : (koreanTitleEl ? koreanTitleEl.value || '' : '');
             const englishDescription = isTextOnlyMode ? '' : (englishDescriptionEl ? englishDescriptionEl.value || '' : '');
             const koreanDescription = isTextOnlyMode ? '' : (koreanDescriptionEl?.value || '');
-            const textOnlyContent = isTextOnlyMode ? (textOnlyContentEl?.value || '') : '';
+            const textOnlyLeft = isTextOnlyMode ? (textOnlyLeftEl?.value || '') : '';
+            const textOnlyRight = isTextOnlyMode ? (textOnlyRightEl?.value || '') : '';
             const project = isTextOnlyMode ? '' : (projectEl.value || '');
             const client = isTextOnlyMode ? '' : (clientEl.value || '');
             const date = isTextOnlyMode ? '' : (dateEl.value || '');
@@ -924,7 +926,7 @@ class PortfolioManager {
             // Text Only 모드에 따른 검증
             let validationFailed = false;
             if ((!isTextOnlyMode && (!englishTitle || !koreanDescription || !category)) ||
-                (isTextOnlyMode && (!textOnlyContent || !category))) {
+                (isTextOnlyMode && (!textOnlyLeft || !category))) {
                 validationFailed = true;
             }
             if (!isTextOnlyMode && (!project || !client || !date)) {
@@ -934,7 +936,7 @@ class PortfolioManager {
             if (validationFailed) {
                 console.log('❌ 필수 필드 누락');
                 if (isTextOnlyMode) {
-                    this.showAlert('내용과 카테고리는 필수입니다. (Text Only)', 'error');
+                    this.showAlert('좌측 내용과 카테고리는 필수입니다. (Text Only)', 'error');
                 } else {
                     this.showAlert('모든 필수 필드를 입력해주세요. (카테고리 선택은 필수입니다)', 'error');
                 }
@@ -1036,7 +1038,9 @@ class PortfolioManager {
                 title: englishTitle, // 기존 호환성
                 englishDescription,
                 koreanDescription,
-                description: isTextOnlyMode ? textOnlyContent : koreanDescription,
+                description: isTextOnlyMode ? textOnlyLeft : koreanDescription,
+                textLeft: isTextOnlyMode ? textOnlyLeft : '',
+                textRight: isTextOnlyMode ? textOnlyRight : '',
                 project,
                 client,
                 date,

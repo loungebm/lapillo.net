@@ -127,14 +127,15 @@
                 const pageTitle = content.koreanTitle || content.englishTitle || content.title || 'Text Only';
                 document.getElementById('page-title').textContent = `${pageTitle} - lapillo`;
 
-                // 단일 내용 사용 (한/영 구분 없이 동일 내용 사용)
-                const singleContent = content.description || content.koreanDescription || content.englishDescription || '';
-                const koreanContent = singleContent;
+                // 좌/우 내용 분리 사용. 없으면 좌측 내용을 우측에 복제
+                const leftContentRaw = content.textLeft || content.description || content.koreanDescription || '';
+                const rightContentRaw = content.textRight || leftContentRaw;
+                const koreanContent = leftContentRaw;
                 const koreanParagraphs = koreanContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
                 document.getElementById('korean-content').innerHTML = koreanParagraphs;
 
-                // 우측 컬럼에도 동일 내용 사용
-                const englishContent = singleContent;
+                // 우측 컬럼
+                const englishContent = rightContentRaw;
                 const englishParagraphs = englishContent.split('\n\n').map(p => `<p>${p}</p>`).join('');
                 document.getElementById('english-content').innerHTML = englishParagraphs;
 
