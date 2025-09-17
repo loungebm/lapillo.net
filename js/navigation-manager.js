@@ -20,6 +20,11 @@ class NavigationManager {
             return urlParams.get('category') || 'design';
         }
         
+        // Text-Only 상세 페이지인 경우
+        if (filename === 'text-detail.html') {
+            return urlParams.get('category') || 'design';
+        }
+        
         // 포트폴리오 상세 페이지인 경우 - 포트폴리오 카테고리로 결정
         if (filename === 'portfolio-detail.html') {
             const portfolioId = urlParams.get('id');
@@ -110,12 +115,16 @@ class NavigationManager {
     // 데스크톱 네비게이션 생성
     generateDesktopNavigation() {
         const enabledMenus = this.menus.filter(menu => menu.enabled).sort((a, b) => a.order - b.order);
-        console.log('🖥️ 데스크톱 네비게이션 생성 - 활성 메뉴:', enabledMenus.map(m => ({id: m.id, name: m.name, order: m.order})));
+        console.log('🖥️ 데스크톱 네비게이션 생성 - 활성 메뉴:', enabledMenus.map(m => ({id: m.id, name: m.name, order: m.order, textOnly: m.textOnly})));
         
         return enabledMenus.map(menu => {
             const isActive = this.currentPage === menu.id;
             const activeClass = isActive ? 'border-b-2 border-gray-900' : '';
-            const href = `category.html?category=${menu.id}`;
+            
+            // Text-Only 메뉴는 직접 상세 페이지로, 일반 메뉴는 카테고리 페이지로
+            const href = menu.textOnly ? 
+                `text-detail.html?category=${menu.id}` : 
+                `category.html?category=${menu.id}`;
             
             return `<a href="${href}" id="nav-${menu.id}" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium ${activeClass}">${menu.name}</a>`;
         }).join('\n                        ');
@@ -128,7 +137,11 @@ class NavigationManager {
         return enabledMenus.map(menu => {
             const isActive = this.currentPage === menu.id;
             const activeClass = isActive ? 'border-b-2 border-gray-900' : '';
-            const href = `category.html?category=${menu.id}`;
+            
+            // Text-Only 메뉴는 직접 상세 페이지로, 일반 메뉴는 카테고리 페이지로
+            const href = menu.textOnly ? 
+                `text-detail.html?category=${menu.id}` : 
+                `category.html?category=${menu.id}`;
             
             return `<a href="${href}" id="mobile-nav-${menu.id}" class="mobile-nav-link ${activeClass}">${menu.name}</a>`;
         }).join('\n                ');
@@ -141,11 +154,8 @@ class NavigationManager {
         // 데스크톱 네비게이션 업데이트
         const desktopNav = document.getElementById('desktop-navigation');
         if (desktopNav) {
-            const aboutActiveClass = this.currentPage === 'about' ? 'border-b-2 border-gray-900' : '';
-            const contactActiveClass = this.currentPage === 'contact' ? 'border-b-2 border-gray-900' : '';
-            
-            const aboutLink = `<a href="about.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium ${aboutActiveClass}">About</a>`;
-            const contactLink = `<a href="contact.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium ${contactActiveClass}">Contact</a>`;
+            const aboutLink = '<a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>';
+            const contactLink = '<a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>';
             
             desktopNav.innerHTML = `
                         ${this.generateDesktopNavigation()}
@@ -157,16 +167,13 @@ class NavigationManager {
         // 모바일 네비게이션 업데이트
         const mobileNav = document.getElementById('mobile-navigation');
         if (mobileNav) {
-            const aboutActiveClass = this.currentPage === 'about' ? 'border-b-2 border-gray-900' : '';
-            const contactActiveClass = this.currentPage === 'contact' ? 'border-b-2 border-gray-900' : '';
-            
-            const aboutLink = `<a href="about.html" class="mobile-nav-link ${aboutActiveClass}">About</a>`;
-            const contactLink = `<a href="contact.html" class="mobile-nav-link ${contactActiveClass}">Contact</a>`;
+            const aboutLink = '<a href="#about" class="mobile-nav-link">About</a>';
+            const contactLink = '<a href="#contact" class="mobile-nav-link">Contact</a>';
             const instagramHTML = `
                 <div class="mobile-instagram-wrapper">
                 <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
                     </svg>
                 </a>
                 </div>
@@ -191,11 +198,8 @@ class NavigationManager {
         // 데스크톱 네비게이션 업데이트
         const desktopNav = document.getElementById('desktop-navigation');
         if (desktopNav) {
-            const aboutActiveClass = this.currentPage === 'about' ? 'border-b-2 border-gray-900' : '';
-            const contactActiveClass = this.currentPage === 'contact' ? 'border-b-2 border-gray-900' : '';
-            
-            const aboutLink = `<a href="about.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium ${aboutActiveClass}">About</a>`;
-            const contactLink = `<a href="contact.html" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium ${contactActiveClass}">Contact</a>`;
+            const aboutLink = '<a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>';
+            const contactLink = '<a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>';
             
             desktopNav.innerHTML = `
                         ${this.generateDesktopNavigation()}
@@ -207,16 +211,13 @@ class NavigationManager {
         // 모바일 네비게이션 업데이트
         const mobileNav = document.getElementById('mobile-navigation');
         if (mobileNav) {
-            const aboutActiveClass = this.currentPage === 'about' ? 'border-b-2 border-gray-900' : '';
-            const contactActiveClass = this.currentPage === 'contact' ? 'border-b-2 border-gray-900' : '';
-            
-            const aboutLink = `<a href="about.html" class="mobile-nav-link ${aboutActiveClass}">About</a>`;
-            const contactLink = `<a href="contact.html" class="mobile-nav-link ${contactActiveClass}">Contact</a>`;
+            const aboutLink = '<a href="#about" class="mobile-nav-link">About</a>';
+            const contactLink = '<a href="#contact" class="mobile-nav-link">Contact</a>';
             const instagramHTML = `
                 <div class="mobile-instagram-wrapper">
                 <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
                     <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.791-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
+                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.90-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.40s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.40s-.644-1.44-1.439-1.40z"/>
                     </svg>
                 </a>
                 </div>

@@ -482,6 +482,34 @@
             margin-bottom: 2rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+
+        /* Text Only 모드 스타일 */
+        .text-only-mode .image-upload-fields {
+            display: none !important;
+        }
+        
+        .text-only-mode .text-only-fields {
+            display: block !important;
+        }
+        
+        .text-only-fields {
+            display: none;
+        }
+
+        /* 제목 입력 영역 공통 클래스 */
+        .title-fields {}
+
+        /* Text Only일 때 제목/일반 필드 숨김 */
+        .text-only-mode .title-fields,
+        .text-only-mode .normal-mode-fields,
+        .text-only-mode .normal-mode-label {
+            display: none !important;
+        }
+        .text-only-mode .textonly-single-field,
+        .text-only-mode .text-only-mode-label {
+            display: inline !important;
+        }
+        .textonly-single-field { display: none; }
         
         .admin-header .flex {
             display: flex !important;
@@ -597,20 +625,30 @@
             <form id="portfolio-edit-form">
                 <input type="hidden" id="portfolio-id" value="">
                 
+                <!-- 모드 선택 -->
+                <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" id="text-only-mode-checkbox" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" onchange="toggleTextOnlyMode()">
+                        <span class="text-sm font-medium text-blue-900">Text Only 모드</span>
+                    </label>
+                    <small class="text-blue-700 block mt-1">체크하면 이미지 없이 텍스트만 입력하는 페이지가 됩니다</small>
+                </div>
+
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Left Column - 텍스트 입력 필드들 -->
                     <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 제목 (영문) - 메인 페이지 표시</label>
-                            <input type="text" id="portfolio-english-title" class="form-input" placeholder="BROS macaron, archive udo - Dripbag" required>
+                        <!-- 제목 입력 영역 (일반 모드에서만 사용) -->
+                        <div class="title-fields">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 normal-mode-label">작품 제목 (영문) - 메인 페이지 표시</label>
+                            <input type="text" id="portfolio-english-title" class="form-input" placeholder="BROS macaron, archive udo - Dripbag">
                         </div>
                         
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 제목 (한글) - 상세 페이지 표시</label>
+                        <div class="title-fields">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 normal-mode-label">작품 제목 (한글) - 상세 페이지 표시</label>
                             <input type="text" id="portfolio-korean-title" class="form-input" placeholder="브로스 마카롱, 아카이브 우도 드립백">
                         </div>
                         
-                        <div>
+                        <div class="normal-mode-fields">
                             <label class="block text-sm font-medium text-gray-700 mb-2">프로젝트 타입</label>
                             <input type="text" id="portfolio-project" class="form-input" placeholder="Branding, Package design" required>
                             <small class="text-gray-500">쉼표로 구분하여 입력하세요</small>
@@ -626,35 +664,42 @@
                             </select>
                         </div>
                         
-                        <div>
+                        <div class="normal-mode-fields">
                             <label class="block text-sm font-medium text-gray-700 mb-2">서브 카테고리 (선택사항)</label>
                             <input type="text" id="portfolio-subcategory" class="form-input" placeholder="Branding, Illustration, Solo Exhibition 등">
                             <small class="text-gray-500">세부 분류가 필요한 경우 입력하세요</small>
                         </div>
                         
-                        <div>
+                        <div class="normal-mode-fields">
                             <label class="block text-sm font-medium text-gray-700 mb-2">클라이언트</label>
                             <input type="text" id="portfolio-client" class="form-input" placeholder="클라이언트명" required>
                         </div>
                         
-                        <div>
+                        <div class="normal-mode-fields">
                             <label class="block text-sm font-medium text-gray-700 mb-2">날짜</label>
                             <input type="text" id="portfolio-date" class="form-input" placeholder="Feb, 2022" required>
                         </div>
                         
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (한글) - 상세 페이지 기본</label>
-                            <textarea id="portfolio-korean-description" class="form-textarea" placeholder="프로젝트에 대한 한글 상세 설명" rows="4" required></textarea>
+                        <!-- 내용 입력 - 일반 모드(한/영 분리) -->
+                        <div class="normal-mode-fields">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 normal-mode-label">작품 설명 (한글) - 상세 페이지 기본</label>
+                            <textarea id="portfolio-korean-description" class="form-textarea" placeholder="프로젝트에 대한 한글 상세 설명" rows="4"></textarea>
                         </div>
                         
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">작품 설명 (영문) - 추가 설명</label>
+                        <div class="normal-mode-fields">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 normal-mode-label">작품 설명 (영문) - 추가 설명</label>
                             <textarea id="portfolio-english-description" class="form-textarea" placeholder="Detailed description of the project in English" rows="4"></textarea>
+                        </div>
+
+                        <!-- 내용 입력 - Text Only 모드(단일 필드) -->
+                        <div class="textonly-single-field">
+                            <label class="block text-sm font-medium text-gray-700 mb-2 text-only-mode-label">내용 (한/영 함께 입력)</label>
+                            <textarea id="textonly-content" class="form-textarea" placeholder="한/영 내용을 함께 입력하세요. 줄바꿈 두 번으로 문단 구분." rows="8"></textarea>
                         </div>
                     </div>
                     
-                    <!-- Right Column - 이미지 업로드 -->
-                    <div class="space-y-6">
+                    <!-- Right Column - 이미지 업로드 (일반 모드에서만 표시) -->
+                    <div class="space-y-6 image-upload-fields">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">썸네일 이미지</label>
                             <div class="file-upload-container">
@@ -693,6 +738,25 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Text Only 모드일 때 우측 컬럼 -->
+                    <div class="space-y-6 text-only-fields">
+                        <div class="p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <h4 class="text-lg font-semibold text-yellow-800 mb-4">Text Only 모드</h4>
+                            <p class="text-yellow-700 mb-4">이 모드에서는 좌측과 우측에 텍스트 컬럼 2개만 포함된 페이지가 생성됩니다.</p>
+                            
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-white p-3 rounded border">
+                                    <strong class="text-gray-700">좌측 컬럼:</strong><br>
+                                    <span class="text-gray-600">한글 내용</span>
+                                </div>
+                                <div class="bg-white p-3 rounded border">
+                                    <strong class="text-gray-700">우측 컬럼:</strong><br>
+                                    <span class="text-gray-600">영문 내용</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="flex justify-end gap-3 mt-6 form-buttons">
@@ -724,6 +788,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">순서</label>
                         <input type="number" id="menu-order" class="form-input" placeholder="2" min="1" required>
+                    </div>
+                    
+                    <div>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="menu-text-only" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-sm font-medium text-gray-700">Text Only</span>
+                        </label>
+                        <small class="text-gray-500 block mt-1">체크하면 텍스트만 입력하는 페이지가 됩니다</small>
                     </div>
                     
                     <div class="md:col-span-3 flex gap-3">
@@ -773,6 +845,79 @@
                 statusElement.className = 'firebase-status firebase-disconnected';
             }
         });
+
+        // Text Only 모드 토글 함수
+        function toggleTextOnlyMode() {
+            const checkbox = document.getElementById('text-only-mode-checkbox');
+            const form = document.getElementById('portfolio-edit-form');
+            const normalModeLabels = form.querySelectorAll('.normal-mode-label');
+            const textOnlyModeLabels = form.querySelectorAll('.text-only-mode-label');
+            const normalModeFields = form.querySelectorAll('.normal-mode-fields');
+            const imageUploadFields = form.querySelectorAll('.image-upload-fields');
+            const textOnlyFields = form.querySelectorAll('.text-only-fields');
+            const textOnlySingleField = form.querySelector('.textonly-single-field');
+            const titleFields = form.querySelectorAll('.title-fields');
+
+            if (checkbox.checked) {
+                // Text Only 모드 활성화
+                form.classList.add('text-only-mode');
+                
+                // 라벨 변경
+                normalModeLabels.forEach(label => label.style.display = 'none');
+                textOnlyModeLabels.forEach(label => label.style.display = 'inline');
+                
+                // 필드 숨기기/보이기
+                normalModeFields.forEach(field => field.style.display = 'none');
+                imageUploadFields.forEach(field => field.style.display = 'none');
+                textOnlyFields.forEach(field => field.style.display = 'block');
+                if (textOnlySingleField) textOnlySingleField.style.display = 'block';
+                titleFields.forEach(f => f.style.display = 'none');
+                
+                // 필수 필드 조정 (Text Only 모드에서는 제목/프로젝트/클라이언트/날짜 비필수)
+                const projectInput = document.getElementById('portfolio-project');
+                const clientInput = document.getElementById('portfolio-client');
+                const dateInput = document.getElementById('portfolio-date');
+                const engTitle = document.getElementById('portfolio-english-title');
+                const krTitle = document.getElementById('portfolio-korean-title');
+                
+                if (projectInput) projectInput.removeAttribute('required');
+                if (clientInput) clientInput.removeAttribute('required');
+                if (dateInput) dateInput.removeAttribute('required');
+                if (engTitle) engTitle.removeAttribute('required');
+                if (krTitle) krTitle.removeAttribute('required');
+                
+            } else {
+                // 일반 모드 활성화
+                form.classList.remove('text-only-mode');
+                
+                // 라벨 변경
+                normalModeLabels.forEach(label => label.style.display = 'inline');
+                textOnlyModeLabels.forEach(label => label.style.display = 'none');
+                
+                // 필드 숨기기/보이기
+                normalModeFields.forEach(field => field.style.display = 'block');
+                imageUploadFields.forEach(field => field.style.display = 'block');
+                textOnlyFields.forEach(field => field.style.display = 'none');
+                if (textOnlySingleField) textOnlySingleField.style.display = 'none';
+                titleFields.forEach(f => f.style.display = 'block');
+                
+                // 필수 필드 복원
+                const projectInput = document.getElementById('portfolio-project');
+                const clientInput = document.getElementById('portfolio-client');
+                const dateInput = document.getElementById('portfolio-date');
+                const engTitle = document.getElementById('portfolio-english-title');
+                const krTitle = document.getElementById('portfolio-korean-title');
+                
+                if (projectInput) projectInput.setAttribute('required', '');
+                if (clientInput) clientInput.setAttribute('required', '');
+                if (dateInput) dateInput.setAttribute('required', '');
+                if (engTitle) engTitle.setAttribute('required', '');
+                if (krTitle) krTitle.removeAttribute('required');
+            }
+        }
+
+        // Text Only 모드 토글 함수를 전역 스코프에 추가
+        window.toggleTextOnlyMode = toggleTextOnlyMode;
 
         // Firebase Authentication 설정
         const auth = firebase.auth();

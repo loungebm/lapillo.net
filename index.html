@@ -125,6 +125,8 @@
                     
                     if (portfolios.length > 0) {
                     portfolios.forEach(portfolio => {
+                        // Text-Only 항목은 메인 그리드에서 제외 (직접 상세 링크 전용)
+                        if (portfolio.textOnly) return;
                         const gridItem = document.createElement('a');
                         gridItem.className = 'grid-item';
                         gridItem.href = `portfolio-detail.html?id=${portfolio.id}`;

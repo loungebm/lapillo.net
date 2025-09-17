@@ -23,7 +23,6 @@ class FirebaseService {
     constructor() {
         this.portfoliosCollection = 'portfolios';
         this.menusCollection = 'menus';
-        this.textPagesCollection = 'textPages';
     }
 
     // 모든 포트폴리오 가져오기
@@ -39,6 +38,24 @@ class FirebaseService {
             return portfolios;
         } catch (error) {
             console.error('Error getting portfolios:', error);
+            throw error;
+        }
+    }
+
+    // 카테고리별 포트폴리오 가져오기
+    async getPortfoliosByCategory(category) {
+        try {
+            const snapshot = await db.collection(this.portfoliosCollection)
+                .where('category', '==', category)
+                .orderBy('createdAt', 'desc')
+                .get();
+            const portfolios = [];
+            snapshot.forEach((doc) => {
+                portfolios.push({ id: doc.id, ...doc.data() });
+            });
+            return portfolios;
+        } catch (error) {
+            console.error('Error getting portfolios by category:', error);
             throw error;
         }
     }
@@ -258,31 +275,6 @@ class FirebaseService {
             await batch.commit();
         } catch (error) {
             console.error('Error updating menu order:', error);
-            throw error;
-        }
-    }
-
-    // 텍스트 페이지 가져오기
-    async getTextPage(pageType) {
-        try {
-            const doc = await db.collection(this.textPagesCollection).doc(pageType).get();
-            if (doc.exists) {
-                return doc.data();
-            }
-            return null;
-        } catch (error) {
-            console.error(`Error getting text page ${pageType}:`, error);
-            throw error;
-        }
-    }
-
-    // 텍스트 페이지 저장
-    async saveTextPage(pageType, data) {
-        try {
-            await db.collection(this.textPagesCollection).doc(pageType).set(data);
-            return data;
-        } catch (error) {
-            console.error(`Error saving text page ${pageType}:`, error);
             throw error;
         }
     }

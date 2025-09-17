@@ -318,11 +318,18 @@ class PortfolioManager {
                     <div>
                         <h4 class="font-medium text-gray-900">${menu.name}</h4>
                         <p class="text-sm text-gray-500">ID: ${menu.id}</p>
+                        ${menu.textOnly ? '<p class="text-xs text-blue-600 font-medium">📝 Text Only</p>' : ''}
                     </div>
-                    ${menu.enabled ? 
-                        '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">활성</span>' : 
-                        '<span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">비활성</span>'
-                    }
+                    <div class="flex flex-col gap-1">
+                        ${menu.enabled ? 
+                            '<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">활성</span>' : 
+                            '<span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">비활성</span>'
+                        }
+                        ${menu.textOnly ? 
+                            '<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">텍스트 전용</span>' : 
+                            '<span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">포트폴리오</span>'
+                        }
+                    </div>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="editMenuSafe('${menu.id}')" class="btn-secondary text-sm">편집</button>
@@ -389,15 +396,23 @@ class PortfolioManager {
                 console.warn(`⚠️ 메뉴 폼 요소를 찾을 수 없음: ${id}`);
             }
         });
+
+        // Text Only 체크박스 설정
+        const textOnlyCheckbox = document.getElementById('menu-text-only');
+        if (textOnlyCheckbox) {
+            textOnlyCheckbox.checked = menu.textOnly || false;
+        }
     }
 
     // 메뉴 폼 초기화
     clearMenuForm() {
         const form = document.getElementById('menu-edit-form');
         const menuId = document.getElementById('menu-id');
+        const textOnlyCheckbox = document.getElementById('menu-text-only');
         
         if (form) form.reset();
         if (menuId) menuId.value = '';
+        if (textOnlyCheckbox) textOnlyCheckbox.checked = false;
     }
 
     // 메뉴 폼 숨기기
@@ -746,19 +761,34 @@ class PortfolioManager {
             }
         });
         
-        // 기존 이미지 미리보기 표시
+        // Text Only 모드 설정
+        const textOnlyModeCheckbox = document.getElementById('text-only-mode-checkbox');
+        if (textOnlyModeCheckbox) {
+            textOnlyModeCheckbox.checked = portfolio.textOnly || false;
+            // 폼 모드 즉시 적용
+            if (typeof toggleTextOnlyMode === 'function') {
+                toggleTextOnlyMode();
+            } else if (window.toggleTextOnlyMode) {
+                window.toggleTextOnlyMode();
+            }
+        }
+
+        // 기존 이미지 미리보기 표시 (Text Only 모드가 아닐 때만)
         console.log('🖼️ 편집할 포트폴리오 이미지 정보:', {
             id: portfolio.id,
             thumbnail: portfolio.thumbnail,
             detailImages: portfolio.images?.length || 0,
-            detailImageUrls: portfolio.images
+            detailImageUrls: portfolio.images,
+            textOnly: portfolio.textOnly
         });
         
-        if (portfolio.thumbnail) {
-            this.showExistingThumbnail(portfolio.thumbnail);
-        }
-        if (portfolio.images && portfolio.images.length > 0) {
-            this.showExistingDetailImages(portfolio.images);
+        if (!portfolio.textOnly) {
+            if (portfolio.thumbnail) {
+                this.showExistingThumbnail(portfolio.thumbnail);
+            }
+            if (portfolio.images && portfolio.images.length > 0) {
+                this.showExistingDetailImages(portfolio.images);
+            }
         }
     }
 
@@ -766,6 +796,7 @@ class PortfolioManager {
     clearForm() {
         const form = document.getElementById('portfolio-edit-form');
         const portfolioId = document.getElementById('portfolio-id');
+        const textOnlyModeCheckbox = document.getElementById('text-only-mode-checkbox');
         
         if (form) {
             form.reset();
@@ -775,6 +806,17 @@ class PortfolioManager {
         
         if (portfolioId) {
             portfolioId.value = '';
+        }
+        
+        // Text Only 모드 체크박스 초기화
+        if (textOnlyModeCheckbox) {
+            textOnlyModeCheckbox.checked = false;
+            // 일반 모드로 전환
+            if (typeof toggleTextOnlyMode === 'function') {
+                toggleTextOnlyMode();
+            } else if (window.toggleTextOnlyMode) {
+                window.toggleTextOnlyMode();
+            }
         }
         
         // 파일 입력 필드도 명시적으로 초기화
@@ -825,30 +867,47 @@ class PortfolioManager {
                 return;
             }
             
+            // Text Only 모드 확인
+            const textOnlyModeCheckbox = document.getElementById('text-only-mode-checkbox');
+            const isTextOnlyMode = textOnlyModeCheckbox ? textOnlyModeCheckbox.checked : false;
+
             // 필수 필드 검증 (null 체크 강화)
             const englishTitleEl = document.getElementById('portfolio-english-title');
             const koreanTitleEl = document.getElementById('portfolio-korean-title');
             const englishDescriptionEl = document.getElementById('portfolio-english-description');
             const koreanDescriptionEl = document.getElementById('portfolio-korean-description');
+            const textOnlyContentEl = document.getElementById('textonly-content');
             const projectEl = document.getElementById('portfolio-project');
             const clientEl = document.getElementById('portfolio-client');
             const dateEl = document.getElementById('portfolio-date');
             const categoryEl = document.getElementById('portfolio-category');
             const subcategoryEl = document.getElementById('portfolio-subcategory');
             
-            if (!englishTitleEl || !koreanDescriptionEl || !projectEl || !clientEl || !dateEl || !categoryEl) {
+            // Text Only 모드에 따른 필수 필드 체크
+            const requiredFields = [categoryEl];
+            if (!isTextOnlyMode) {
+                // 일반 모드: 영문 제목/한글 설명 필수
+                requiredFields.push(englishTitleEl, koreanDescriptionEl);
+                requiredFields.push(projectEl, clientEl, dateEl);
+            } else {
+                // 텍스트온리: 단일 내용 필수
+                requiredFields.push(textOnlyContentEl);
+            }
+            
+            if (requiredFields.some(field => !field)) {
                 console.error('❌ 필수 입력 필드를 찾을 수 없습니다');
                 this.showAlert('페이지에 오류가 있습니다. 새로고침 후 다시 시도해주세요.', 'error');
                 return;
             }
             
-            const englishTitle = englishTitleEl.value || '';
-            const koreanTitle = koreanTitleEl ? koreanTitleEl.value || '' : '';
-            const englishDescription = englishDescriptionEl ? englishDescriptionEl.value || '' : '';
-            const koreanDescription = koreanDescriptionEl.value || '';
-            const project = projectEl.value || '';
-            const client = clientEl.value || '';
-            const date = dateEl.value || '';
+            const englishTitle = isTextOnlyMode ? '' : (englishTitleEl?.value || '');
+            const koreanTitle = isTextOnlyMode ? '' : (koreanTitleEl ? koreanTitleEl.value || '' : '');
+            const englishDescription = isTextOnlyMode ? '' : (englishDescriptionEl ? englishDescriptionEl.value || '' : '');
+            const koreanDescription = isTextOnlyMode ? '' : (koreanDescriptionEl?.value || '');
+            const textOnlyContent = isTextOnlyMode ? (textOnlyContentEl?.value || '') : '';
+            const project = isTextOnlyMode ? '' : (projectEl.value || '');
+            const client = isTextOnlyMode ? '' : (clientEl.value || '');
+            const date = isTextOnlyMode ? '' : (dateEl.value || '');
             const category = categoryEl.value || '';
             const subcategory = subcategoryEl ? subcategoryEl.value || '' : '';
         
@@ -858,12 +917,27 @@ class PortfolioManager {
                 project: project || '(비어있음)',
                 client: client || '(비어있음)',
                 date: date || '(비어있음)',
-                category: category || '(비어있음)'
+                category: category || '(비어있음)',
+                isTextOnlyMode: isTextOnlyMode
             });
             
-            if (!englishTitle || !koreanDescription || !project || !client || !date || !category) {
+            // Text Only 모드에 따른 검증
+            let validationFailed = false;
+            if ((!isTextOnlyMode && (!englishTitle || !koreanDescription || !category)) ||
+                (isTextOnlyMode && (!textOnlyContent || !category))) {
+                validationFailed = true;
+            }
+            if (!isTextOnlyMode && (!project || !client || !date)) {
+                validationFailed = true;
+            }
+            
+            if (validationFailed) {
                 console.log('❌ 필수 필드 누락');
-                this.showAlert('모든 필수 필드를 입력해주세요. (카테고리 선택은 필수입니다)', 'error');
+                if (isTextOnlyMode) {
+                    this.showAlert('내용과 카테고리는 필수입니다. (Text Only)', 'error');
+                } else {
+                    this.showAlert('모든 필수 필드를 입력해주세요. (카테고리 선택은 필수입니다)', 'error');
+                }
                 return;
             }
             
@@ -904,11 +978,17 @@ class PortfolioManager {
                 this.showAlert('썸네일 업로드 완료', 'success');
             }
             
-            // 새 썸네일이 있는 경우 검증
-            if (!thumbnailUrl && !thumbnailFile) {
+            // Text Only 모드가 아닐 때만 썸네일 필수 검증
+            if (!isTextOnlyMode && !thumbnailUrl && !thumbnailFile) {
                 this.showAlert('썸네일 이미지는 필수입니다.', 'error');
                 this.uploadInProgress = false;
+                this.hideSaveLoadingModal();
                 return;
+            }
+            
+            // Text Only 모드일 때 기본 썸네일 설정
+            if (isTextOnlyMode && !thumbnailUrl && !thumbnailFile) {
+                thumbnailUrl = './img/main.jpg'; // 기본 텍스트 전용 썸네일 (기존 이미지 사용)
             }
             
             // 상세 이미지들 업로드 및 순서 재정렬
@@ -953,10 +1033,10 @@ class PortfolioManager {
                 id: portfolioId,
                 englishTitle,
                 koreanTitle,
-                title: englishTitle, // 기존 호환성을 위해 유지
+                title: englishTitle, // 기존 호환성
                 englishDescription,
                 koreanDescription,
-                description: koreanDescription, // 기존 호환성을 위해 유지
+                description: isTextOnlyMode ? textOnlyContent : koreanDescription,
                 project,
                 client,
                 date,
@@ -964,6 +1044,7 @@ class PortfolioManager {
                 subcategory,
                 thumbnail: thumbnailUrl,
                 images: imageUrls,
+                textOnly: isTextOnlyMode, // Text Only 모드 속성 추가
                 createdAt: this.currentEditId ? 
                     this.portfolios.find(p => p.id === this.currentEditId)?.createdAt : 
                     new Date().toISOString().split('T')[0],
@@ -1055,10 +1136,13 @@ class PortfolioManager {
             
             const menuName = menuNameEl.value.trim();
             const menuOrder = parseInt(menuOrderEl.value) || 1;
+            const textOnlyCheckbox = document.getElementById('menu-text-only');
+            const isTextOnly = textOnlyCheckbox ? textOnlyCheckbox.checked : false;
             
             console.log('🔍 메뉴 필드 값 확인:', {
                 name: menuName || '(비어있음)',
-                order: menuOrder
+                order: menuOrder,
+                textOnly: isTextOnly
             });
             
             if (!menuName) {
@@ -1116,7 +1200,8 @@ class PortfolioManager {
                 name: menuName,
                 order: menuOrder,
                 enabled: true,
-                isDeletable: menuId !== 'design' // Design 메뉴는 삭제 불가
+                isDeletable: menuId !== 'design', // Design 메뉴는 삭제 불가
+                textOnly: isTextOnly
             };
             
             console.log('💾 메뉴 저장 시도:', menuData);
@@ -1569,13 +1654,7 @@ async function initializeApp() {
             // 비동기 초기화 완료까지 대기
             await portfolioManager.init();
             
-            // TextPageManager 초기화
-            textPageManager = new TextPageManager();
-            await textPageManager.loadTextPages();
-            window.textPageManager = textPageManager;
-            
             console.log('✅ PortfolioManager 완전 초기화 완료');
-            console.log('✅ TextPageManager 초기화 완료');
             console.log('🔧 편집/삭제 함수 테스트:', {
                 editFunction: typeof window.editPortfolioSafe,
                 deleteFunction: typeof window.deletePortfolioSafe,
@@ -1606,149 +1685,6 @@ async function initializeApp() {
         setTimeout(initializeApp, 500);
     }
 }
-
-// 텍스트 페이지 관리 클래스
-class TextPageManager {
-    constructor() {
-        this.textPages = {};
-        this.currentEditPage = null;
-    }
-
-    // 텍스트 페이지 로드
-    async loadTextPages() {
-        try {
-            console.log('📝 텍스트 페이지 로딩 시작...');
-            
-            const aboutData = await window.firebaseService.getTextPage('about');
-            const contactData = await window.firebaseService.getTextPage('contact');
-            
-            this.textPages = {
-                about: aboutData || {
-                    leftColumn: 'lapillo는 디자이너와 작가를 활동하는 김혁원과 강보영이 운영하는 그래픽 스튜디오로 브랜드 디자인 프로젝트와 개인 아트워크를 선보입니다.',
-                    rightColumn: '스튜디오의 이름인 Lapillo는 화산 자갈이라는 뜻으로 자갈의 개성있는 형태로 거름받니다. 이렇게 시시각각 변화하는 시간 속 - 우리 모두가 각기 다른 빛과 모양의 조약돌 - 이라는 뜻을 담고자 하였습니다.'
-                },
-                contact: contactData || {
-                    leftColumn: 'studio.lapillo@gmail.com',
-                    rightColumn: 'lapillo와 함께 나만의 취향과 색을 찾는 경험을 하시길 바랍니다.'
-                }
-            };
-            
-            this.renderTextPageForm();
-            console.log('✅ 텍스트 페이지 로딩 완료');
-        } catch (error) {
-            console.error('❌ 텍스트 페이지 로딩 실패:', error);
-        }
-    }
-
-    // 텍스트 페이지 폼 렌더링
-    renderTextPageForm() {
-        const aboutSection = this.createTextPageSection('about', 'About 페이지');
-        const contactSection = this.createTextPageSection('contact', 'Contact 페이지');
-        
-        // 기존 텍스트 페이지 섹션이 있다면 제거
-        const existingSection = document.getElementById('text-pages-section');
-        if (existingSection) {
-            existingSection.remove();
-        }
-        
-        // 새 섹션 생성
-        const section = document.createElement('div');
-        section.id = 'text-pages-section';
-        section.className = 'form-section p-6 mb-8';
-        section.innerHTML = `
-            <h2 class="text-2xl font-semibold mb-6">About & Contact 페이지 관리</h2>
-            <div class="space-y-6">
-                ${aboutSection}
-                ${contactSection}
-            </div>
-        `;
-        
-        // 포트폴리오 목록 섹션 앞에 삽입
-        const portfolioListSection = document.querySelector('.form-section:last-child');
-        if (portfolioListSection) {
-            portfolioListSection.parentNode.insertBefore(section, portfolioListSection);
-        }
-    }
-
-    // 개별 텍스트 페이지 섹션 생성
-    createTextPageSection(pageType, title) {
-        const data = this.textPages[pageType];
-        return `
-            <div class="border border-gray-200 rounded-lg p-4">
-                <h3 class="text-lg font-semibold mb-4">${title}</h3>
-                <form onsubmit="textPageManager.saveTextPage(event, '${pageType}')" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">왼쪽 컬럼</label>
-                        <textarea 
-                            id="${pageType}-left" 
-                            class="form-textarea" 
-                            rows="4" 
-                            placeholder="왼쪽 컬럼 내용을 입력하세요"
-                        >${data.leftColumn}</textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">오른쪽 컬럼</label>
-                        <textarea 
-                            id="${pageType}-right" 
-                            class="form-textarea" 
-                            rows="4" 
-                            placeholder="오른쪽 컬럼 내용을 입력하세요"
-                        >${data.rightColumn}</textarea>
-                    </div>
-                    <div class="md:col-span-2 flex justify-end gap-3">
-                        <button type="submit" class="btn-primary">저장</button>
-                        <a href="${pageType}.html" target="_blank" class="btn-secondary">미리보기</a>
-                    </div>
-                </form>
-            </div>
-        `;
-    }
-
-    // 텍스트 페이지 저장
-    async saveTextPage(event, pageType) {
-        event.preventDefault();
-        
-        try {
-            const leftColumn = document.getElementById(`${pageType}-left`).value;
-            const rightColumn = document.getElementById(`${pageType}-right`).value;
-            
-            const data = {
-                leftColumn,
-                rightColumn,
-                updatedAt: new Date().toISOString()
-            };
-            
-            await window.firebaseService.saveTextPage(pageType, data);
-            this.textPages[pageType] = data;
-            
-            this.showAlert(`${pageType.toUpperCase()} 페이지가 저장되었습니다.`, 'success');
-            console.log(`✅ ${pageType} 페이지 저장 완료`);
-        } catch (error) {
-            console.error(`❌ ${pageType} 페이지 저장 실패:`, error);
-            this.showAlert(`${pageType.toUpperCase()} 페이지 저장에 실패했습니다.`, 'error');
-        }
-    }
-
-    // 알림 표시
-    showAlert(message, type = 'success') {
-        const container = document.getElementById('alert-container');
-        if (!container) return;
-        
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-        const alertElement = document.createElement('div');
-        alertElement.className = `alert ${alertClass}`;
-        alertElement.textContent = message;
-        
-        container.appendChild(alertElement);
-        
-        setTimeout(() => {
-            alertElement.remove();
-        }, 5000);
-    }
-}
-
-// 전역 textPageManager 인스턴스
-let textPageManager;
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🔄 DOM 로딩 완료');
