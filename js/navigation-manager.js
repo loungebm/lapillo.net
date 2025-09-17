@@ -154,21 +154,14 @@ class NavigationManager {
         // 데스크톱 네비게이션 업데이트
         const desktopNav = document.getElementById('desktop-navigation');
         if (desktopNav) {
-            const aboutLink = '<a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>';
-            const contactLink = '<a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>';
-            
             desktopNav.innerHTML = `
                         ${this.generateDesktopNavigation()}
-                        ${aboutLink}
-                        ${contactLink}
             `.trim();
         }
 
         // 모바일 네비게이션 업데이트
         const mobileNav = document.getElementById('mobile-navigation');
         if (mobileNav) {
-            const aboutLink = '<a href="#about" class="mobile-nav-link">About</a>';
-            const contactLink = '<a href="#contact" class="mobile-nav-link">Contact</a>';
             const instagramHTML = `
                 <div class="mobile-instagram-wrapper">
                 <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
@@ -181,8 +174,6 @@ class NavigationManager {
             
             mobileNav.innerHTML = `
                 ${this.generateMobileNavigation()}
-                ${aboutLink}
-                ${contactLink}
                 ${instagramHTML}
             `.trim();
         }
@@ -198,21 +189,14 @@ class NavigationManager {
         // 데스크톱 네비게이션 업데이트
         const desktopNav = document.getElementById('desktop-navigation');
         if (desktopNav) {
-            const aboutLink = '<a href="index.html#about" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">About</a>';
-            const contactLink = '<a href="index.html#contact" class="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium">Contact</a>';
-            
             desktopNav.innerHTML = `
                         ${this.generateDesktopNavigation()}
-                        ${aboutLink}
-                        ${contactLink}
             `.trim();
         }
 
         // 모바일 네비게이션 업데이트
         const mobileNav = document.getElementById('mobile-navigation');
         if (mobileNav) {
-            const aboutLink = '<a href="#about" class="mobile-nav-link">About</a>';
-            const contactLink = '<a href="#contact" class="mobile-nav-link">Contact</a>';
             const instagramHTML = `
                 <div class="mobile-instagram-wrapper">
                 <a href="http://instagram.com/studio_lapillo/" target="_blank" class="mobile-instagram">
@@ -225,8 +209,6 @@ class NavigationManager {
             
             mobileNav.innerHTML = `
                 ${this.generateMobileNavigation()}
-                ${aboutLink}
-                ${contactLink}
                 ${instagramHTML}
             `.trim();
         }
