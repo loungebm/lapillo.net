@@ -57,12 +57,12 @@
             // 사용 가능한 높이 계산 (헤더 제외)
             const availableHeight = viewportHeight - (header ? header.offsetHeight : 80);
             
-            // 메뉴 간격 계산
-            const menuGap = Math.max(0.8, Math.min(1.5, availableHeight * 0.08 / 16));
+            // 메뉴 간격 계산 (80%로 줄임)
+            const menuGap = Math.max(0.6, Math.min(1.2, availableHeight * 0.08 / 16 * 0.8));
             document.documentElement.style.setProperty('--menu-gap', menuGap + 'rem');
             
-            // 폰트 크기 계산
-            const fontSize = Math.max(1.6, Math.min(2.4, viewportWidth * 0.045));
+            // 폰트 크기 계산 (90%로 줄임)
+            const fontSize = Math.max(1.4, Math.min(2.2, viewportWidth * 0.045 * 0.9));
             document.documentElement.style.setProperty('--menu-font-size', fontSize + 'rem');
             
             // Instagram 마진 계산
@@ -89,11 +89,6 @@
                 hamburgerBtn.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 
-                const menuContent = mobileMenu.querySelector('.mobile-menu-content');
-                if (menuContent) {
-                    menuContent.style.transform = 'translateY(0)';
-                }
-                
                 console.log('✅ Mobile menu opened');
             } else {
                 // 메뉴 닫기
@@ -101,16 +96,11 @@
                 hamburgerBtn.classList.remove('active');
                 document.body.style.overflow = 'auto';
                 
-                const menuContent = mobileMenu.querySelector('.mobile-menu-content');
-                if (menuContent) {
-                    menuContent.style.transform = 'translateY(100%)';
-                }
-                
                 setTimeout(() => {
                     if (!mobileMenuOpen) {
                         mobileMenu.style.display = 'none';
                     }
-                }, 400);
+                }, 300); // CSS transition 시간과 맞춤
                 
                 console.log('✅ Mobile menu closed');
             }
