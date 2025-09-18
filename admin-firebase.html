@@ -924,21 +924,37 @@
         // Firebase Authentication 설정
         const auth = firebase.auth();
 
-        // 인증 상태 확인
-        auth.onAuthStateChanged((user) => {
+        // 인증 상태 확인 + 관리자 클레임 확인
+        auth.onAuthStateChanged(async (user) => {
             const loadingScreen = document.getElementById('auth-loading');
             const adminContent = document.getElementById('admin-content');
             const userEmailSpan = document.getElementById('user-email');
 
             if (user) {
-                // 로그인된 상태
-                console.log('인증된 사용자:', user.email);
-                userEmailSpan.textContent = user.email;
-                
-                // 로딩 화면 숨기고 관리자 콘텐츠 표시
-                loadingScreen.style.display = 'none';
-                adminContent.style.display = 'block';
-                
+                try {
+                    // 토큰 재발급 후 커스텀 클레임 확인
+                    const tokenResult = await user.getIdTokenResult(true);
+                    const isAdmin = !!tokenResult.claims?.admin;
+                    console.log('관리자 클레임:', isAdmin);
+
+                    if (!isAdmin) {
+                        alert('관리자 권한이 필요합니다. 관리자에게 문의하세요.');
+                        await auth.signOut();
+                        window.location.href = 'admin-login.html';
+                        return;
+                    }
+
+                    // 관리자 통과
+                    console.log('인증된 관리자:', user.email);
+                    userEmailSpan.textContent = user.email;
+                    loadingScreen.style.display = 'none';
+                    adminContent.style.display = 'block';
+                } catch (err) {
+                    console.error('관리자 검증 실패:', err);
+                    alert('인증 정보를 확인하는 중 오류가 발생했습니다. 다시 로그인해 주세요.');
+                    await auth.signOut();
+                    window.location.href = 'admin-login.html';
+                }
             } else {
                 // 로그인되지 않은 상태 - 로그인 페이지로 리다이렉트
                 console.log('인증되지 않은 접근 시도');
