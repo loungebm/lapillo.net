@@ -271,10 +271,10 @@ header .header-container {
 /* Mobile Menu Overlay - Slide up from bottom, below header only */
 .mobile-menu-overlay {
     position: fixed;
-    top: 0;
+    top: var(--header-height, 80px); /* Start below header */
     left: 0;
     width: 100vw;
-    height: 100vh;
+    height: calc(100vh - var(--header-height, 80px)); /* Height minus header */
     background-color: transparent;
     z-index: 9999;
     display: none;
@@ -289,7 +289,7 @@ header .header-container {
 .mobile-menu-overlay.show::before {
     content: '';
     position: absolute;
-    top: var(--header-height, 80px); /* Dynamic header height */
+    top: 0; /* Start from overlay top */
     left: 0;
     right: 0;
     bottom: 0;
@@ -298,7 +298,7 @@ header .header-container {
 
 .mobile-menu-content {
     position: absolute;
-    top: var(--header-height, 80px); /* Dynamic header height */
+    top: 0; /* Start from overlay top */
     bottom: 0;
     left: 0;
     right: 0;
@@ -311,7 +311,7 @@ header .header-container {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - var(--header-height, 80px));
+    min-height: 100%;
 }
 
 .mobile-menu-overlay.show .mobile-menu-content {
@@ -322,7 +322,7 @@ header .header-container {
 .hamburger-button {
     background: none;
     border: none;
-    cursor: pointer !important;
+    cursor: pointer;
     padding: 8px;
     display: flex;
     align-items: center;
@@ -333,23 +333,15 @@ header .header-container {
     z-index: 1001;
     outline: none;
     -webkit-tap-highlight-color: transparent;
-    pointer-events: auto !important;
-    touch-action: manipulation;
 }
 
 .hamburger-button:hover {
-    cursor: pointer !important;
+    cursor: pointer;
     background: rgba(0, 0, 0, 0.05);
 }
 
 .hamburger-button:active {
-    background: rgba(0, 0, 0, 0.1) !important;
-    cursor: pointer !important;
-}
-
-.hamburger-button:focus {
-    outline: none;
-    cursor: pointer !important;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .hamburger-icon {
@@ -534,8 +526,8 @@ header .header-container {
     
     /* 모바일 메뉴 오버레이 조정 */
     .mobile-menu-overlay {
-        top: 0;
-        height: 100vh;
+        top: var(--header-height, 80px);
+        height: calc(100vh - var(--header-height, 80px));
     }
 }
 

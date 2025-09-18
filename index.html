@@ -71,7 +71,6 @@
         }
 
         function toggleMobileMenu() {
-            console.log('🔥 Button clicked! Current state:', mobileMenuOpen);
             const mobileMenu = document.getElementById('mobile-menu');
             const hamburgerBtn = document.getElementById('hamburger-btn');
             
@@ -79,13 +78,6 @@
                 console.error('❌ Elements not found');
                 return;
             }
-            
-            console.log('🔍 Button details:', {
-                element: hamburgerBtn,
-                rect: hamburgerBtn.getBoundingClientRect(),
-                cursor: window.getComputedStyle(hamburgerBtn).cursor,
-                pointerEvents: window.getComputedStyle(hamburgerBtn).pointerEvents
-            });
             
             mobileMenuOpen = !mobileMenuOpen;
             
@@ -130,26 +122,8 @@
             const mobileMenu = document.getElementById('mobile-menu');
             
             if (hamburgerBtn) {
-                // 기존 이벤트 제거 후 새로 추가
-                hamburgerBtn.removeEventListener('click', toggleMobileMenu);
-                hamburgerBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🎯 Click event triggered!');
-                    toggleMobileMenu();
-                });
-                
-                // 버튼 스타일 강제 적용
-                hamburgerBtn.style.cursor = 'pointer';
-                hamburgerBtn.style.pointerEvents = 'auto';
-                hamburgerBtn.style.zIndex = '1001';
-                
-                console.log('✅ Hamburger button initialized with forced styles');
-                console.log('🔍 Button after init:', {
-                    element: hamburgerBtn,
-                    rect: hamburgerBtn.getBoundingClientRect(),
-                    cursor: window.getComputedStyle(hamburgerBtn).cursor
-                });
+                hamburgerBtn.addEventListener('click', toggleMobileMenu);
+                console.log('✅ Hamburger button initialized');
             } else {
                 console.error('❌ Hamburger button not found');
             }
@@ -165,7 +139,7 @@
             if (mobileNav) {
                 mobileNav.addEventListener('click', (e) => {
                     if (e.target.tagName === 'A') {
-                        toggleMobileMenu(); // 토글로 닫기
+                        toggleMobileMenu();
                     }
                 });
             }
