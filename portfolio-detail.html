@@ -103,6 +103,7 @@
     <script src="js/firebase-cdn.js"></script>
     <script src="js/component-loader.js"></script>
     <script src="js/navigation-manager.js"></script>
+    <script src="js/mobile-menu.js"></script>
 </head>
 <body class="bg-white font-sans">
     <!-- Header Component Placeholder -->
@@ -444,8 +445,8 @@
             const menuGap = Math.max(0.6, Math.min(1.2, availableHeight * 0.08 / 16 * 0.8));
             document.documentElement.style.setProperty('--menu-gap', menuGap + 'rem');
             
-            // 폰트 크기 계산 (90%로 줄임)
-            const fontSize = Math.max(1.4, Math.min(2.2, viewportWidth * 0.045 * 0.9));
+            // 폰트 크기 계산 (현재의 90% → 추가 90% = 81%)
+            const fontSize = Math.max(1.4, Math.min(2.2, viewportWidth * 0.045 * 0.81));
             document.documentElement.style.setProperty('--menu-font-size', fontSize + 'rem');
         }
 
