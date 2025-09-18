@@ -64,12 +64,15 @@
                     throw new Error('Firebase 서비스를 초기화할 수 없습니다.');
                 }
                 
-                // 3. 네비게이션 업데이트
+                // 3. 모바일 메뉴 초기화
+                initMobileMenu();
+                
+                // 4. 네비게이션 업데이트
                 if (window.navigationManager) {
                     await window.navigationManager.updateNavigation();
                 }
                 
-                // 4. Design 포트폴리오 로드
+                // 5. Design 포트폴리오 로드
                 await loadDesignPortfolios();
                 
                 console.log('✅ Design 페이지 초기화 완료');
@@ -164,6 +167,109 @@
                     </div>
                 `;
             }
+        }
+
+        // 모바일 메뉴 상태 관리
+        let mobileMenuOpen = false;
+
+        // 동적 메뉴 스타일 계산
+        function calculateDynamicMenuStyles() {
+            const header = document.querySelector('header');
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+
+            if (header) {
+                const headerHeight = header.offsetHeight;
+                document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
+            }
+
+            const availableHeight = viewportHeight - (header ? header.offsetHeight : 80);
+            
+            // 메뉴 간격 계산 (80%로 줄임)
+            const menuGap = Math.max(0.6, Math.min(1.2, availableHeight * 0.08 / 16 * 0.8));
+            document.documentElement.style.setProperty('--menu-gap', menuGap + 'rem');
+            
+            // 폰트 크기 계산 (90%로 줄임)
+            const fontSize = Math.max(1.4, Math.min(2.2, viewportWidth * 0.045 * 0.9));
+            document.documentElement.style.setProperty('--menu-font-size', fontSize + 'rem');
+        }
+
+        // 모바일 메뉴 토글
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            
+            if (!mobileMenu || !hamburgerBtn) {
+                console.error('❌ Elements not found');
+                return;
+            }
+            
+            mobileMenuOpen = !mobileMenuOpen;
+            
+            if (mobileMenuOpen) {
+                // 메뉴 열기
+                calculateDynamicMenuStyles();
+                mobileMenu.style.display = 'block';
+                mobileMenu.classList.add('show');
+                hamburgerBtn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                console.log('✅ Mobile menu opened');
+            } else {
+                // 메뉴 닫기
+                mobileMenu.classList.remove('show');
+                hamburgerBtn.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                
+                setTimeout(() => {
+                    if (!mobileMenuOpen) {
+                        mobileMenu.style.display = 'none';
+                    }
+                }, 300);
+                
+                console.log('✅ Mobile menu closed');
+            }
+        }
+
+        // 모바일 메뉴 초기화
+        function initMobileMenu() {
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleMobileMenu);
+                console.log('✅ Hamburger button initialized');
+            } else {
+                console.error('❌ Hamburger button not found');
+            }
+
+            if (mobileMenu) {
+                console.log('✅ Mobile menu found');
+            } else {
+                console.error('❌ Mobile menu not found');
+            }
+
+            // 메뉴 링크 클릭 시 닫기
+            const mobileNav = document.getElementById('mobile-navigation');
+            if (mobileNav) {
+                mobileNav.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') {
+                        toggleMobileMenu();
+                    }
+                });
+            }
+
+            // 화면 크기 변경 시 동적 스타일 재계산 및 모바일 메뉴 자동 닫기
+            window.addEventListener('resize', () => {
+                if (mobileMenuOpen) {
+                    // 768px을 넘어가면 모바일 메뉴 자동 닫기
+                    if (window.innerWidth > 768) {
+                        toggleMobileMenu();
+                    } else {
+                        calculateDynamicMenuStyles();
+                    }
+                }
+            });
         }
         
         // 페이지 로드 시 초기화

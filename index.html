@@ -134,10 +134,15 @@
                 });
             }
             
-            // 화면 크기 변경 시 동적 스타일 재계산
+            // 화면 크기 변경 시 동적 스타일 재계산 및 모바일 메뉴 자동 닫기
             window.addEventListener('resize', () => {
                 if (mobileMenuOpen) {
-                    calculateDynamicMenuStyles();
+                    // 768px을 넘어가면 모바일 메뉴 자동 닫기
+                    if (window.innerWidth > 768) {
+                        toggleMobileMenu();
+                    } else {
+                        calculateDynamicMenuStyles();
+                    }
                 }
             });
         }
