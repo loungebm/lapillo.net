@@ -190,56 +190,65 @@ header .header-container {
     transition: transform 0.3s ease;
 }
 
-/* Mobile Menu Overlay */
+/* Mobile Menu Overlay - Complete Redesign */
 .mobile-menu-overlay {
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    z-index: 9999;
     display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.mobile-menu-overlay.active {
-    display: flex !important;
+.mobile-menu-overlay.show {
+    display: block;
+    opacity: 1;
 }
 
 .mobile-menu-content {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     height: 100vh;
-    padding: 5vw;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.95);
-    width: 100%;
+    padding: 2rem;
+    position: relative;
+}
+
+.mobile-menu-close {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    background: none;
+    border: none;
+    color: #333;
+    cursor: pointer;
+    padding: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    z-index: 10000;
 }
 
 .mobile-nav {
-    display: flex !important;
+    display: flex;
     flex-direction: column;
-    gap: 2.5rem;
+    gap: 3rem;
     align-items: center;
-    justify-content: center;
-    flex: 1;
-    width: 100%;
-    z-index: 1001;
+    margin-bottom: 4rem;
 }
 
 .mobile-nav-link {
     font-family: 'Helvetica Neue', Arial, sans-serif;
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 400;
-    color: #333 !important;
+    color: #333;
     text-decoration: none;
     transition: color 0.3s ease;
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
+    text-align: center;
 }
 
 .mobile-nav-link:hover {
@@ -247,8 +256,10 @@ header .header-container {
 }
 
 .mobile-instagram-wrapper {
-    flex-shrink: 0;
-    padding-bottom: 2rem;
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .mobile-instagram {
@@ -258,6 +269,7 @@ header .header-container {
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 1rem;
 }
 
 .mobile-instagram:hover {
@@ -265,8 +277,8 @@ header .header-container {
 }
 
 .mobile-instagram svg {
-    width: 24px;
-    height: 24px;
+    width: 2rem;
+    height: 2rem;
 }
 
 /* Header responsive adjustments */

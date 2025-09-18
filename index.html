@@ -40,55 +40,78 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        // 모바일 메뉴 토글 기능 (컴포넌트 로드 후 실행)
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(() => {
-                const hamburgerBtn = document.getElementById('hamburger-btn');
+        // 모바일 메뉴 - 완전히 새로 설계
+        let mobileMenuOpen = false;
+
+        function openMobileMenu() {
             const mobileMenu = document.getElementById('mobile-menu');
-                const closeMobileMenuBtn = document.getElementById('close-mobile-menu');
-            const hamburgerLines = document.querySelector('.hamburger-lines');
-            const closeLines = document.querySelector('.close-lines');
-            let isOpen = false;
+            if (mobileMenu) {
+                mobileMenu.classList.add('show');
+                mobileMenuOpen = true;
+                document.body.style.overflow = 'hidden'; // 스크롤 방지
+                console.log('Mobile menu opened');
+            }
+        }
 
-            function toggleMenu() {
-                isOpen = !isOpen;
-                    if (mobileMenu) {
-                        mobileMenu.classList.toggle('open', isOpen);
-                    }
-                    if (hamburgerLines) {
-                        hamburgerLines.style.display = isOpen ? 'none' : 'block';
-                    }
-                    if (closeLines) {
-                        closeLines.style.display = isOpen ? 'block' : 'none';
-                    }
-                }
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (mobileMenu) {
+                mobileMenu.classList.remove('show');
+                mobileMenuOpen = false;
+                document.body.style.overflow = 'auto'; // 스크롤 복원
+                console.log('Mobile menu closed');
+            }
+        }
 
-                if (hamburgerBtn) {
-                    hamburgerBtn.addEventListener('click', toggleMenu);
-                }
-                if (closeMobileMenuBtn) {
-                    closeMobileMenuBtn.addEventListener('click', toggleMenu);
-                }
+        function toggleMobileMenu() {
+            if (mobileMenuOpen) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        }
 
-                // 모바일 메뉴 링크 클릭 시 메뉴 닫기
-                if (mobileMenu) {
-            const menuLinks = mobileMenu.querySelectorAll('a');
-            menuLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    if (isOpen) {
-                        toggleMenu();
+        function initMobileMenu() {
+            console.log('Initializing mobile menu...');
+            
+            // 햄버거 버튼
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleMobileMenu);
+                console.log('Hamburger button event added');
+            }
+
+            // 닫기 버튼
+            const closeBtn = document.getElementById('close-mobile-menu');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeMobileMenu);
+                console.log('Close button event added');
+            }
+
+            // 메뉴 링크들 클릭 시 닫기
+            const mobileNav = document.getElementById('mobile-navigation');
+            if (mobileNav) {
+                mobileNav.addEventListener('click', (e) => {
+                    if (e.target.tagName === 'A') {
+                        closeMobileMenu();
                     }
                 });
-            });
-                }
+                console.log('Menu links event added');
+            }
 
             // 화면 크기 변경 시 메뉴 닫기
             window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768 && isOpen) {
-                    toggleMenu();
+                if (window.innerWidth >= 768 && mobileMenuOpen) {
+                    closeMobileMenu();
                 }
             });
-            }, 1000); // 컴포넌트 로드 후 실행
+
+            console.log('Mobile menu initialization complete');
+        }
+
+        // 페이지 로드 후 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initMobileMenu, 500);
         });
 
         // 모든 포트폴리오 로드 함수
@@ -198,6 +221,9 @@
                 window.navigationManager.currentPage = 'index'; // 현재 페이지 설정
                 await window.navigationManager.updateNavigation();
                 console.log('✅ 네비게이션 업데이트 완료');
+                
+                // 네비게이션 업데이트 후 모바일 메뉴 재초기화
+                setTimeout(initMobileMenu, 100);
             } else {
                 console.warn('⚠️ NavigationManager가 없습니다');
             }
