@@ -40,79 +40,171 @@
     <div id="footer-placeholder"></div>
 
     <script>
-        // 모바일 메뉴 - 완전히 새로 설계
+        // 모바일 메뉴 - 깔끔하게 새로 설계
         let mobileMenuOpen = false;
 
-        function openMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu) {
-                mobileMenu.classList.add('show');
-                mobileMenuOpen = true;
-                document.body.style.overflow = 'hidden'; // 스크롤 방지
-                console.log('Mobile menu opened');
+        // 동적 메뉴 스타일 계산 함수
+        function calculateDynamicMenuStyles() {
+            const header = document.querySelector('header');
+            const viewportHeight = window.innerHeight;
+            const viewportWidth = window.innerWidth;
+            
+            if (header) {
+                const headerHeight = header.offsetHeight;
+                document.documentElement.style.setProperty('--header-height', headerHeight + 'px');
             }
-        }
-
-        function closeMobileMenu() {
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu) {
-                mobileMenu.classList.remove('show');
-                mobileMenuOpen = false;
-                document.body.style.overflow = 'auto'; // 스크롤 복원
-                console.log('Mobile menu closed');
-            }
+            
+            // 사용 가능한 높이 계산 (헤더 제외)
+            const availableHeight = viewportHeight - (header ? header.offsetHeight : 80);
+            
+            // 메뉴 간격 계산
+            const menuGap = Math.max(0.8, Math.min(1.5, availableHeight * 0.08 / 16));
+            document.documentElement.style.setProperty('--menu-gap', menuGap + 'rem');
+            
+            // 폰트 크기 계산
+            const fontSize = Math.max(1.6, Math.min(2.4, viewportWidth * 0.045));
+            document.documentElement.style.setProperty('--menu-font-size', fontSize + 'rem');
+            
+            // Instagram 마진 계산
+            const instagramMargin = Math.max(2, Math.min(4, availableHeight * 0.08));
+            document.documentElement.style.setProperty('--instagram-margin', instagramMargin + 'rem');
         }
 
         function toggleMobileMenu() {
+            console.log('🔥 Button clicked! Current state:', mobileMenuOpen);
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerBtn = document.getElementById('hamburger-btn');
+            
+            if (!mobileMenu || !hamburgerBtn) {
+                console.error('❌ Elements not found');
+                return;
+            }
+            
+            console.log('🔍 Button details:', {
+                element: hamburgerBtn,
+                rect: hamburgerBtn.getBoundingClientRect(),
+                cursor: window.getComputedStyle(hamburgerBtn).cursor,
+                pointerEvents: window.getComputedStyle(hamburgerBtn).pointerEvents
+            });
+            
+            mobileMenuOpen = !mobileMenuOpen;
+            
             if (mobileMenuOpen) {
-                closeMobileMenu();
+                // 메뉴 열기
+                calculateDynamicMenuStyles();
+                mobileMenu.style.display = 'block';
+                mobileMenu.classList.add('show');
+                hamburgerBtn.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                const menuContent = mobileMenu.querySelector('.mobile-menu-content');
+                if (menuContent) {
+                    menuContent.style.transform = 'translateY(0)';
+                }
+                
+                console.log('✅ Mobile menu opened');
             } else {
-                openMobileMenu();
+                // 메뉴 닫기
+                mobileMenu.classList.remove('show');
+                hamburgerBtn.classList.remove('active');
+                document.body.style.overflow = 'auto';
+                
+                const menuContent = mobileMenu.querySelector('.mobile-menu-content');
+                if (menuContent) {
+                    menuContent.style.transform = 'translateY(100%)';
+                }
+                
+                setTimeout(() => {
+                    if (!mobileMenuOpen) {
+                        mobileMenu.style.display = 'none';
+                    }
+                }, 400);
+                
+                console.log('✅ Mobile menu closed');
             }
         }
 
+        // 깔끔한 초기화
         function initMobileMenu() {
-            console.log('Initializing mobile menu...');
-            
-            // 햄버거 버튼
             const hamburgerBtn = document.getElementById('hamburger-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
             if (hamburgerBtn) {
-                hamburgerBtn.addEventListener('click', toggleMobileMenu);
-                console.log('Hamburger button event added');
+                // 기존 이벤트 제거 후 새로 추가
+                hamburgerBtn.removeEventListener('click', toggleMobileMenu);
+                hamburgerBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🎯 Click event triggered!');
+                    toggleMobileMenu();
+                });
+                
+                // 버튼 스타일 강제 적용
+                hamburgerBtn.style.cursor = 'pointer';
+                hamburgerBtn.style.pointerEvents = 'auto';
+                hamburgerBtn.style.zIndex = '1001';
+                
+                console.log('✅ Hamburger button initialized with forced styles');
+                console.log('🔍 Button after init:', {
+                    element: hamburgerBtn,
+                    rect: hamburgerBtn.getBoundingClientRect(),
+                    cursor: window.getComputedStyle(hamburgerBtn).cursor
+                });
+            } else {
+                console.error('❌ Hamburger button not found');
             }
-
-            // 닫기 버튼
-            const closeBtn = document.getElementById('close-mobile-menu');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closeMobileMenu);
-                console.log('Close button event added');
+            
+            if (mobileMenu) {
+                console.log('✅ Mobile menu found');
+            } else {
+                console.error('❌ Mobile menu not found');
             }
-
-            // 메뉴 링크들 클릭 시 닫기
+            
+            // 메뉴 링크 클릭 시 닫기
             const mobileNav = document.getElementById('mobile-navigation');
             if (mobileNav) {
                 mobileNav.addEventListener('click', (e) => {
                     if (e.target.tagName === 'A') {
-                        closeMobileMenu();
+                        toggleMobileMenu(); // 토글로 닫기
                     }
                 });
-                console.log('Menu links event added');
             }
-
-            // 화면 크기 변경 시 메뉴 닫기
+            
+            // 화면 크기 변경 시 동적 스타일 재계산
             window.addEventListener('resize', () => {
-                if (window.innerWidth >= 768 && mobileMenuOpen) {
-                    closeMobileMenu();
+                if (mobileMenuOpen) {
+                    calculateDynamicMenuStyles();
                 }
             });
-
-            console.log('Mobile menu initialization complete');
         }
 
-        // 페이지 로드 후 초기화
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initMobileMenu, 500);
-        });
+        // 간단한 대기 함수
+        function waitAndInit() {
+            let attempts = 0;
+            const maxAttempts = 20;
+            
+            const check = () => {
+                attempts++;
+                const hamburgerBtn = document.getElementById('hamburger-btn');
+                const mobileMenu = document.getElementById('mobile-menu');
+                
+                console.log(`⏳ Check ${attempts}: Hamburger=${!!hamburgerBtn}, Menu=${!!mobileMenu}`);
+                
+                if (hamburgerBtn && mobileMenu) {
+                    console.log('✅ Found elements, initializing...');
+                    initMobileMenu();
+                    return;
+                }
+                
+                if (attempts < maxAttempts) {
+                    setTimeout(check, 200);
+                } else {
+                    console.error('❌ Failed to find elements after', maxAttempts, 'attempts');
+                }
+            };
+            
+            check();
+        }
 
         // 모든 포트폴리오 로드 함수
         async function loadAllPortfolios() {
@@ -216,6 +308,9 @@
             await loadComponent('footer-placeholder', 'components/footer.html');
             console.log('✅ 컴포넌트 로딩 완료');
 
+            // 간단한 모바일 메뉴 초기화
+            waitAndInit();
+
             // NavigationManager 초기화 및 업데이트
             if (window.navigationManager) {
                 window.navigationManager.currentPage = 'index'; // 현재 페이지 설정
@@ -223,12 +318,22 @@
                 console.log('✅ 네비게이션 업데이트 완료');
                 
                 // 네비게이션 업데이트 후 모바일 메뉴 재초기화
-                setTimeout(initMobileMenu, 100);
+                setTimeout(() => {
+                    console.log('🔄 Re-initializing mobile menu after navigation...');
+                    initMobileMenu();
+                }, 500);
             } else {
                 console.warn('⚠️ NavigationManager가 없습니다');
             }
 
             await loadAllPortfolios();
+            
+            // 최종 모바일 메뉴 확인
+            setTimeout(() => {
+                console.log('🔍 Final check - initializing mobile menu...');
+                initMobileMenu();
+            }, 1500);
+            
             console.log('✅ 메인 페이지 초기화 완료');
         });
     </script>
