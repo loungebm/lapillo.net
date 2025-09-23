@@ -259,8 +259,9 @@ class PortfolioManager {
             this.renderMenus();
             console.log('✅ 메뉴 렌더링 완료');
             
+            // 실시간 구독 비활성화 (구독 모델 미사용)
             this.setupRealtimeUpdates();
-            console.log('✅ 실시간 업데이트 설정 완료');
+            console.log('ℹ️ 실시간 업데이트는 사용하지 않습니다 (수동 새로고침).');
         } catch (error) {
             console.error('❌ PortfolioManager 초기화 중 에러:', error);
             this.showAlert('데이터 로딩에 실패했습니다: ' + error.message, 'error');
@@ -575,13 +576,11 @@ class PortfolioManager {
         }];
     }
 
-    // 실시간 업데이트 설정
+    // 실시간 업데이트 설정 (비활성화)
     setupRealtimeUpdates() {
-        this.firebaseService.onPortfoliosChange((portfolios) => {
-            this.portfolios = portfolios;
-            this.renderPortfolios();
-            console.log('실시간 업데이트:', portfolios.length, '개 포트폴리오');
-        });
+        // 구독형 모델이 아니므로 실시간 리스너를 등록하지 않습니다.
+        // 데이터는 저장 직후 loadPortfolios()로 수동 새로고침합니다.
+        return undefined;
     }
 
     // Firebase에 포트폴리오 데이터 저장
