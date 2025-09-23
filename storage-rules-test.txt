@@ -1,0 +1,7 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 임시로 모든 요청 허용 (테스트용)
+    allow read, write: if true;
+  }
+}

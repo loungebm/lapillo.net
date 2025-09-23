@@ -1,0 +1,16 @@
+# 현재 Storage 규칙 (백업)
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    allow read: if true;
+    allow write, delete: if request.auth != null && request.auth.token.admin == true;
+  }
+}
+
+# 임시 완화된 규칙 (테스트용)
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    allow read, write: if true;
+  }
+}
