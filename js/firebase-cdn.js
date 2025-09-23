@@ -107,7 +107,7 @@ class FirebaseService {
             });
     }
 
-    // 이미지 업로드
+    // 이미지 업로드 (CORS 문제 해결 개선)
     async uploadImage(file, path = 'portfolios') {
         try {
             const timestamp = Date.now();
@@ -121,13 +121,14 @@ class FirebaseService {
             
             const storageRef = storage.ref().child(fullPath);
             
-            // 메타데이터 설정으로 CORS 문제 완화
+            // CORS 문제 해결을 위한 메타데이터 설정
             const metadata = {
                 contentType: file.type,
                 cacheControl: 'public,max-age=3600',
                 customMetadata: {
                     uploadedBy: 'admin',
-                    timestamp: timestamp.toString()
+                    timestamp: timestamp.toString(),
+                    origin: window.location.origin
                 }
             };
             
@@ -144,9 +145,28 @@ class FirebaseService {
         } catch (error) {
             console.error('Error uploading image:', error);
             
-            // CORS 에러인 경우 더 자세한 정보 제공
-            if (error.code === 'storage/unauthorized') {
-                throw new Error('CORS 설정이 필요합니다. Google Cloud Console에서 Storage 버킷의 CORS를 설정해주세요.');
+            // CORS 관련 에러 처리 개선
+            if (error.code === 'storage/unauthorized' || 
+                error.message.includes('CORS') || 
+                error.message.includes('cross-origin') ||
+                error.message.includes('Access-Control-Allow-Origin')) {
+                throw new Error(`
+                    CORS 설정이 필요합니다. 다음 단계를 따라주세요:
+                    
+                    1. Google Cloud Console (console.cloud.google.com) 접속
+                    2. Firebase 프로젝트 선택
+                    3. Cloud Storage → 버킷 → 권한 → CORS 설정
+                    4. 다음 CORS 규칙 추가:
+                    
+                    [
+                      {
+                        "origin": ["https://lapillo.net", "http://127.0.0.1:5500", "http://localhost:5500"],
+                        "method": ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS"],
+                        "responseHeader": ["Content-Type", "Authorization", "X-Requested-With"],
+                        "maxAgeSeconds": 3600
+                      }
+                    ]
+                `);
             }
             
             throw error;
