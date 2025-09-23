@@ -120,7 +120,18 @@ class FirebaseService {
             console.log('업로드할 파일:', filename);
             
             const storageRef = storage.ref().child(fullPath);
-            const snapshot = await storageRef.put(file);
+            
+            // 메타데이터 설정으로 CORS 문제 완화
+            const metadata = {
+                contentType: file.type,
+                cacheControl: 'public,max-age=3600',
+                customMetadata: {
+                    uploadedBy: 'admin',
+                    timestamp: timestamp.toString()
+                }
+            };
+            
+            const snapshot = await storageRef.put(file, metadata);
             const downloadURL = await snapshot.ref.getDownloadURL();
             
             console.log('업로드 완료:', downloadURL);
@@ -132,6 +143,12 @@ class FirebaseService {
             };
         } catch (error) {
             console.error('Error uploading image:', error);
+            
+            // CORS 에러인 경우 더 자세한 정보 제공
+            if (error.code === 'storage/unauthorized') {
+                throw new Error('CORS 설정이 필요합니다. Google Cloud Console에서 Storage 버킷의 CORS를 설정해주세요.');
+            }
+            
             throw error;
         }
     }
