@@ -869,7 +869,7 @@ class PortfolioManager {
             if (hasNewFiles && !confirm('파일 업로드가 진행 중입니다. 정말 취소하시겠습니까?')) {
                 return;
             }
-            this.hideUploadModal();
+            this.hideSaveLoadingModal();
         }
         
         const portfolioForm = document.getElementById('portfolio-form');
