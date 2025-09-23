@@ -5,7 +5,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyCOn5UKpKYScOxOAQuvGHyiB5EVb_evN3Q",
     authDomain: "lapillo-portfolio.firebaseapp.com",
     projectId: "lapillo-portfolio",
-    storageBucket: "lapillo-portfolio.firebasestorage.app",
+    storageBucket: "lapillo-portfolio-storage",
     messagingSenderId: "7087688501",
     appId: "1:7087688501:web:5bc019661a2a6e38e49a7c",
     measurementId: "G-T2BS7KX4G6"
