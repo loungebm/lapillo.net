@@ -32,13 +32,24 @@ class FirebaseService {
                 .orderBy('createdAt', 'desc')
                 .get();
             const portfolios = [];
+            const allData = [];
+            
             snapshot.forEach((doc) => {
                 const data = { id: doc.id, ...doc.data() };
+                allData.push(data);
                 // enabled가 false가 아닌 포트폴리오만 포함 (기본값은 true)
                 if (data.enabled !== false) {
                     portfolios.push(data);
                 }
             });
+            
+            console.log('🔍 getAllPortfolios 필터링 결과:', {
+                전체포트폴리오: allData.length,
+                활성포트폴리오: portfolios.length,
+                비활성포트폴리오: allData.length - portfolios.length,
+                비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
+            });
+            
             return portfolios;
         } catch (error) {
             console.error('Error getting portfolios:', error);
@@ -53,13 +64,25 @@ class FirebaseService {
                 .where('category', '==', category)
                 .get();
             const portfolios = [];
+            const allData = [];
+            
             snapshot.forEach((doc) => {
                 const data = { id: doc.id, ...doc.data() };
+                allData.push(data);
                 // enabled가 false가 아닌 포트폴리오만 포함 (기본값은 true)
                 if (data.enabled !== false) {
                     portfolios.push(data);
                 }
             });
+            
+            console.log(`🔍 getPortfoliosByCategory(${category}) 필터링 결과:`, {
+                카테고리: category,
+                전체포트폴리오: allData.length,
+                활성포트폴리오: portfolios.length,
+                비활성포트폴리오: allData.length - portfolios.length,
+                비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
+            });
+            
             // createdAt 기준 내림차순 정렬 (문자열/Date 모두 처리)
             portfolios.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             return portfolios;
