@@ -363,6 +363,25 @@ class PortfolioManager {
         }
     }
 
+    // 포트폴리오 활성/비활성 토글
+    async togglePortfolioEnabled(portfolioId, currentEnabled) {
+        try {
+            const portfolio = this.portfolios.find(p => p.id === portfolioId);
+            if (!portfolio) {
+                this.showAlert('포트폴리오를 찾을 수 없습니다.', 'error');
+                return;
+            }
+            const updated = { ...portfolio, enabled: !currentEnabled };
+            await this.firebaseService.savePortfolio(updated);
+            await this.loadPortfolios();
+            this.renderPortfolios();
+            this.showAlert(`포트폴리오가 '${updated.enabled ? '활성' : '비활성'}' 상태로 변경되었습니다.`, 'success');
+        } catch (error) {
+            console.error('포트폴리오 활성화 상태 변경 실패:', error);
+            this.showAlert('상태 변경 중 오류가 발생했습니다.', 'error');
+        }
+    }
+
     // 메뉴 추가 폼 표시
     showAddMenuForm() {
         console.log('➕ 새 메뉴 추가 모드');
@@ -676,16 +695,18 @@ class PortfolioManager {
         // Firebase에서 이미 createdAt 기준으로 정렬된 데이터를 사용
         console.log('🎨 포트폴리오 렌더링:', this.portfolios.map(p => ({id: p.id, title: p.englishTitle || p.title})));
         container.innerHTML = this.portfolios.map(portfolio => `
-            <div class="portfolio-row">
+            <div class="portfolio-row ${portfolio.enabled === false ? 'opacity-60' : ''}">
                 <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="portfolio-thumbnail">
                 <div class="portfolio-title">
                     ${portfolio.englishTitle || portfolio.title}
                     ${portfolio.koreanTitle ? `<br><span class="text-sm text-gray-500">${portfolio.koreanTitle}</span>` : ''}
+                    ${portfolio.enabled === false ? '<br><span class="text-xs text-red-500 font-medium">비활성</span>' : ''}
                 </div>
                 <div class="portfolio-category">
                     <span class="category-badge" data-category="${portfolio.category || 'design'}">${portfolio.category || 'design'}</span>
                 </div>
                 <div class="portfolio-actions">
+                    <button onclick="togglePortfolioEnabled('${portfolio.id}', ${portfolio.enabled !== false})" class="btn-secondary">${portfolio.enabled !== false ? '비활성' : '활성'}</button>
                     <button onclick="editPortfolioSafe('${portfolio.id}')" class="btn-secondary">편집</button>
                     <button onclick="deletePortfolioSafe('${portfolio.id}')" class="btn-secondary text-red-600">삭제</button>
                     <a href="${portfolio.textOnly ? 'text-detail.html' : 'portfolio-detail.html'}?id=${portfolio.id}" target="_blank" class="btn-secondary">미리보기</a>
@@ -1082,6 +1103,8 @@ class PortfolioManager {
                 thumbnail: thumbnailUrl,
                 images: imageUrls,
                 textOnly: isTextOnlyMode, // Text Only 모드 속성 추가
+                enabled: this.currentEditId ? 
+                    this.portfolios.find(p => p.id === this.currentEditId)?.enabled !== false : true, // 기본값 true, 편집 시 기존 값 유지
                 createdAt: this.currentEditId ? 
                     this.portfolios.find(p => p.id === this.currentEditId)?.createdAt : 
                     new Date().toISOString().split('T')[0],
@@ -1595,6 +1618,31 @@ window.deletePortfolioSafe = function(id) {
     console.log('🗑️ 삭제 버튼 클릭:', id);
     if (window.portfolioManager && typeof window.portfolioManager.deletePortfolio === 'function') {
         window.portfolioManager.deletePortfolio(id);
+    } else {
+        console.error('❌ portfolioManager가 초기화되지 않았습니다');
+        alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+    }
+};
+
+// 전역 포트폴리오 상태 토글 함수
+window.togglePortfolioEnabled = function(id, enabled) {
+    console.log('🔄 포트폴리오 상태 토글:', id, enabled);
+    
+    if (!id) {
+        console.error('❌ 포트폴리오 ID가 없습니다:', id);
+        alert('포트폴리오 ID가 올바르지 않습니다.');
+        return;
+    }
+    
+    if (window.portfolioManager && typeof window.portfolioManager.togglePortfolioEnabled === 'function') {
+        try {
+            console.log('🔄 togglePortfolioEnabled 함수 호출 시작');
+            window.portfolioManager.togglePortfolioEnabled(id, enabled);
+            console.log('🔄 togglePortfolioEnabled 함수 호출 완료');
+        } catch (error) {
+            console.error('🔄 togglePortfolioEnabled 호출 중 오류:', error);
+            alert('포트폴리오 상태 변경 중 오류가 발생했습니다: ' + error.message);
+        }
     } else {
         console.error('❌ portfolioManager가 초기화되지 않았습니다');
         alert('시스템이 아직 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
