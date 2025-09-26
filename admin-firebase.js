@@ -690,7 +690,7 @@ class PortfolioManager {
 
     // 카테고리 탭 렌더링
     renderCategoryTabs() {
-        const tabContainer = document.querySelector('.flex.gap-2');
+        const tabContainer = document.querySelector('.category-tabs');
         if (!tabContainer) {
             console.error('⚠️ 탭 컨테이너를 찾을 수 없습니다.');
             return;
