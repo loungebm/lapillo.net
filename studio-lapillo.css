@@ -934,3 +934,60 @@ footer {
         max-width: 1500px;
     }
 }
+
+/* Category Tabs Styles */
+.category-tabs-container {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 0;
+}
+
+.category-tab {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    margin: 0.25rem;
+    background-color: #f8f9fa;
+    color: #6b7280;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+}
+
+.category-tab:hover {
+    background-color: #e5e7eb;
+    color: #374151;
+    transform: translateY(-1px);
+}
+
+.category-tab.active {
+    background-color: #1f2937;
+    color: #ffffff;
+    border-color: #1f2937;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.category-tab.active:hover {
+    background-color: #111827;
+    transform: none;
+}
+
+/* Mobile responsive tabs */
+@media screen and (max-width: 768px) {
+    .category-tabs-container {
+        padding: 0.5rem 0;
+    }
+    
+    .category-tab {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        margin: 0.125rem;
+    }
+    
+    #category-tabs {
+        gap: 0.25rem;
+    }
+}

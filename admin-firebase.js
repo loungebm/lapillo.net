@@ -226,6 +226,7 @@ class PortfolioManager {
         this.pendingFiles = [];
         this.firebaseService = null;
         this.imageManager = new ImageManager(); // 새로운 이미지 관리자
+        this.currentFilter = 'all'; // 현재 선택된 카테고리 필터
         window.imageManager = this.imageManager; // 전역 접근 가능하도록
         // init()는 외부에서 await로 호출됨
     }
@@ -258,6 +259,12 @@ class PortfolioManager {
             
             this.renderMenus();
             console.log('✅ 메뉴 렌더링 완료');
+            
+            this.renderCategoryTabs();
+            console.log('✅ 카테고리 탭 렌더링 완료');
+            
+            this.bindCategoryTabEvents();
+            console.log('✅ 카테고리 탭 이벤트 바인딩 완료');
             
             // 실시간 구독 비활성화 (구독 모델 미사용)
             this.setupRealtimeUpdates();
@@ -356,6 +363,7 @@ class PortfolioManager {
             await this.firebaseService.saveMenu(updated);
             await this.loadMenus();
             this.renderMenus();
+            this.renderCategoryTabs(); // 탭도 다시 렌더링
             this.showAlert(`메뉴가 '${updated.enabled ? '활성' : '비활성'}' 상태로 변경되었습니다.`, 'success');
         } catch (error) {
             console.error('메뉴 활성화 상태 변경 실패:', error);
@@ -470,6 +478,7 @@ class PortfolioManager {
             await this.firebaseService.saveMenu(menuData);
             await this.loadMenus();
             this.renderMenus();
+            this.renderCategoryTabs(); // 탭도 다시 렌더링
             this.hideMenuForm();
             this.showAlert('메뉴가 성공적으로 저장되었습니다!', 'success');
         } catch (error) {
@@ -497,6 +506,7 @@ class PortfolioManager {
             await this.loadMenus();
             await this.loadPortfolios();
             this.renderMenus();
+            this.renderCategoryTabs(); // 탭도 다시 렌더링
             this.renderPortfolios();
             
             this.showAlert('메뉴가 삭제되었습니다. 관련 포트폴리오는 Design 카테고리로 이동되었습니다.', 'success');
@@ -678,7 +688,65 @@ class PortfolioManager {
         }
     }
 
-    // 포트폴리오 목록 렌더링
+    // 카테고리 탭 렌더링
+    renderCategoryTabs() {
+        const tabContainer = document.querySelector('.flex.gap-2');
+        if (!tabContainer) {
+            console.error('⚠️ 탭 컨테이너를 찾을 수 없습니다.');
+            return;
+        }
+
+        // 기존 동적 탭들 제거 (전체 탭은 유지)
+        const existingTabs = tabContainer.querySelectorAll('.category-filter-btn:not(#filter-all)');
+        existingTabs.forEach(tab => tab.remove());
+
+        // 활성화된 메뉴들을 기반으로 탭 생성
+        const enabledMenus = this.menus.filter(menu => menu.enabled).sort((a, b) => a.order - b.order);
+        
+        enabledMenus.forEach(menu => {
+            const tabButton = document.createElement('button');
+            tabButton.className = 'category-filter-btn';
+            tabButton.dataset.category = menu.id;
+            tabButton.textContent = menu.name;
+            tabButton.onclick = () => this.filterByCategory(menu.id);
+            
+            tabContainer.appendChild(tabButton);
+        });
+
+        console.log('📋 카테고리 탭 생성 완료:', enabledMenus.map(m => m.name));
+    }
+
+    // 카테고리 탭 이벤트 바인딩
+    bindCategoryTabEvents() {
+        // "전체" 탭 이벤트 바인딩
+        const allTab = document.getElementById('filter-all');
+        if (allTab) {
+            allTab.onclick = () => this.filterByCategory('all');
+        }
+    }
+
+    // 카테고리별 필터링
+    filterByCategory(categoryId) {
+        console.log('🔍 카테고리 필터링:', categoryId);
+        
+        // 현재 필터 업데이트
+        this.currentFilter = categoryId;
+        
+        // 모든 탭 버튼에서 active 클래스 제거
+        const allTabs = document.querySelectorAll('.category-filter-btn');
+        allTabs.forEach(tab => tab.classList.remove('active'));
+        
+        // 선택된 탭에 active 클래스 추가
+        const selectedTab = document.querySelector(`[data-category="${categoryId}"]`);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+        
+        // 포트폴리오 목록 다시 렌더링
+        this.renderPortfolios();
+    }
+
+    // 포트폴리오 목록 렌더링 (필터링 적용)
     renderPortfolios() {
         const container = document.getElementById('portfolio-list');
         
@@ -692,9 +760,30 @@ class PortfolioManager {
             return;
         }
 
-        // Firebase에서 이미 createdAt 기준으로 정렬된 데이터를 사용
-        console.log('🎨 포트폴리오 렌더링:', this.portfolios.map(p => ({id: p.id, title: p.englishTitle || p.title})));
-        container.innerHTML = this.portfolios.map(portfolio => `
+        // 현재 필터에 따라 포트폴리오 필터링
+        let filteredPortfolios = this.portfolios;
+        if (this.currentFilter !== 'all') {
+            filteredPortfolios = this.portfolios.filter(portfolio => 
+                (portfolio.category || 'design') === this.currentFilter
+            );
+        }
+
+        console.log('🎨 포트폴리오 렌더링:', {
+            전체포트폴리오: this.portfolios.length,
+            필터링된포트폴리오: filteredPortfolios.length,
+            현재필터: this.currentFilter
+        });
+
+        if (filteredPortfolios.length === 0) {
+            container.innerHTML = `
+                <p class="text-gray-500 text-center py-8">
+                    ${this.currentFilter === 'all' ? '포트폴리오가 없습니다.' : '해당 카테고리에 포트폴리오가 없습니다.'}
+                </p>
+            `;
+            return;
+        }
+
+        container.innerHTML = filteredPortfolios.map(portfolio => `
             <div class="portfolio-row ${portfolio.enabled === false ? 'opacity-60' : ''}">
                 <img src="${portfolio.thumbnail}" alt="${portfolio.englishTitle || portfolio.title}" class="portfolio-thumbnail">
                 <div class="portfolio-title">
