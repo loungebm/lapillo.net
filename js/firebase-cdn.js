@@ -25,7 +25,7 @@ class FirebaseService {
         this.menusCollection = 'menus';
     }
 
-    // 모든 포트폴리오 가져오기
+    // 모든 포트폴리오 가져오기 (활성화된 것만)
     async getAllPortfolios() {
         try {
             const snapshot = await db.collection(this.portfoliosCollection)
@@ -33,7 +33,11 @@ class FirebaseService {
                 .get();
             const portfolios = [];
             snapshot.forEach((doc) => {
-                portfolios.push({ id: doc.id, ...doc.data() });
+                const data = { id: doc.id, ...doc.data() };
+                // enabled가 false가 아닌 포트폴리오만 포함 (기본값은 true)
+                if (data.enabled !== false) {
+                    portfolios.push(data);
+                }
             });
             return portfolios;
         } catch (error) {
@@ -42,7 +46,7 @@ class FirebaseService {
         }
     }
 
-    // 카테고리별 포트폴리오 가져오기 (클라이언트 정렬로 인덱스 이슈 회피)
+    // 카테고리별 포트폴리오 가져오기 (활성화된 것만)
     async getPortfoliosByCategory(category) {
         try {
             const snapshot = await db.collection(this.portfoliosCollection)
@@ -50,7 +54,11 @@ class FirebaseService {
                 .get();
             const portfolios = [];
             snapshot.forEach((doc) => {
-                portfolios.push({ id: doc.id, ...doc.data() });
+                const data = { id: doc.id, ...doc.data() };
+                // enabled가 false가 아닌 포트폴리오만 포함 (기본값은 true)
+                if (data.enabled !== false) {
+                    portfolios.push(data);
+                }
             });
             // createdAt 기준 내림차순 정렬 (문자열/Date 모두 처리)
             portfolios.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
