@@ -29,7 +29,6 @@ class FirebaseService {
     async getAllPortfolios() {
         try {
             const snapshot = await db.collection(this.portfoliosCollection)
-                .orderBy('createdAt', 'desc')
                 .get();
             const portfolios = [];
             const allData = [];
@@ -43,17 +42,17 @@ class FirebaseService {
                 }
             });
             
-            // dateSort 기준으로 재정렬 (프로젝트 날짜 최신순)
+            // dateSort 기준으로만 정렬 (프로젝트 날짜 최신순)
             portfolios.sort((a, b) => {
-                const dateA = a.dateSort || a.createdAt || '';
-                const dateB = b.dateSort || b.createdAt || '';
+                const dateA = a.dateSort || '';
+                const dateB = b.dateSort || '';
                 return dateB.localeCompare(dateA);  // 내림차순
             });
             
             console.log('🔍 getAllPortfolios 필터링 및 정렬 결과:', {
                 전체포트폴리오: allData.length,
                 활성포트폴리오: portfolios.length,
-                정렬기준: 'dateSort (프로젝트 날짜)',
+                정렬기준: 'dateSort only (프로젝트 날짜)',
                 비활성포트폴리오: allData.length - portfolios.length,
                 비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
             });
@@ -83,10 +82,10 @@ class FirebaseService {
                 }
             });
             
-            // dateSort 기준으로 재정렬 (프로젝트 날짜 최신순)
+            // dateSort 기준으로만 정렬 (프로젝트 날짜 최신순)
             portfolios.sort((a, b) => {
-                const dateA = a.dateSort || a.createdAt || '';
-                const dateB = b.dateSort || b.createdAt || '';
+                const dateA = a.dateSort || '';
+                const dateB = b.dateSort || '';
                 return dateB.localeCompare(dateA);
             });
             
@@ -94,7 +93,7 @@ class FirebaseService {
                 카테고리: category,
                 전체포트폴리오: allData.length,
                 활성포트폴리오: portfolios.length,
-                정렬기준: 'dateSort (프로젝트 날짜)',
+                정렬기준: 'dateSort only (프로젝트 날짜)',
                 비활성포트폴리오: allData.length - portfolios.length,
                 비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
             });

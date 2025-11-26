@@ -768,10 +768,10 @@ class PortfolioManager {
             );
         }
 
-        // dateSort 기준으로 정렬 (최신순)
+        // dateSort 기준으로만 정렬 (최신순)
         filteredPortfolios = filteredPortfolios.sort((a, b) => {
-            const dateA = a.dateSort || a.createdAt || '';
-            const dateB = b.dateSort || b.createdAt || '';
+            const dateA = a.dateSort || '';
+            const dateB = b.dateSort || '';
             return dateB.localeCompare(dateA);  // 내림차순 (최신이 위로)
         });
 
@@ -779,7 +779,7 @@ class PortfolioManager {
             전체포트폴리오: this.portfolios.length,
             필터링된포트폴리오: filteredPortfolios.length,
             현재필터: this.currentFilter,
-            정렬기준: 'dateSort (프로젝트 날짜)'
+            정렬기준: 'dateSort only (프로젝트 날짜)'
         });
 
         if (filteredPortfolios.length === 0) {
