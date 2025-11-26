@@ -43,9 +43,17 @@ class FirebaseService {
                 }
             });
             
-            console.log('🔍 getAllPortfolios 필터링 결과:', {
+            // dateSort 기준으로 재정렬 (프로젝트 날짜 최신순)
+            portfolios.sort((a, b) => {
+                const dateA = a.dateSort || a.createdAt || '';
+                const dateB = b.dateSort || b.createdAt || '';
+                return dateB.localeCompare(dateA);  // 내림차순
+            });
+            
+            console.log('🔍 getAllPortfolios 필터링 및 정렬 결과:', {
                 전체포트폴리오: allData.length,
                 활성포트폴리오: portfolios.length,
+                정렬기준: 'dateSort (프로젝트 날짜)',
                 비활성포트폴리오: allData.length - portfolios.length,
                 비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
             });
@@ -75,16 +83,22 @@ class FirebaseService {
                 }
             });
             
-            console.log(`🔍 getPortfoliosByCategory(${category}) 필터링 결과:`, {
+            // dateSort 기준으로 재정렬 (프로젝트 날짜 최신순)
+            portfolios.sort((a, b) => {
+                const dateA = a.dateSort || a.createdAt || '';
+                const dateB = b.dateSort || b.createdAt || '';
+                return dateB.localeCompare(dateA);
+            });
+            
+            console.log(`🔍 getPortfoliosByCategory(${category}) 필터링 및 정렬 결과:`, {
                 카테고리: category,
                 전체포트폴리오: allData.length,
                 활성포트폴리오: portfolios.length,
+                정렬기준: 'dateSort (프로젝트 날짜)',
                 비활성포트폴리오: allData.length - portfolios.length,
                 비활성목록: allData.filter(p => p.enabled === false).map(p => ({id: p.id, title: p.englishTitle || p.title, enabled: p.enabled}))
             });
             
-            // createdAt 기준 내림차순 정렬 (문자열/Date 모두 처리)
-            portfolios.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             return portfolios;
         } catch (error) {
             console.error('Error getting portfolios by category:', error);

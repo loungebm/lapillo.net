@@ -768,10 +768,18 @@ class PortfolioManager {
             );
         }
 
+        // dateSort 기준으로 정렬 (최신순)
+        filteredPortfolios = filteredPortfolios.sort((a, b) => {
+            const dateA = a.dateSort || a.createdAt || '';
+            const dateB = b.dateSort || b.createdAt || '';
+            return dateB.localeCompare(dateA);  // 내림차순 (최신이 위로)
+        });
+
         console.log('🎨 포트폴리오 렌더링:', {
             전체포트폴리오: this.portfolios.length,
             필터링된포트폴리오: filteredPortfolios.length,
-            현재필터: this.currentFilter
+            현재필터: this.currentFilter,
+            정렬기준: 'dateSort (프로젝트 날짜)'
         });
 
         if (filteredPortfolios.length === 0) {
@@ -876,7 +884,7 @@ class PortfolioManager {
             'portfolio-english-description': portfolio.englishDescription || '',
             'portfolio-project': portfolio.project || '',
             'portfolio-client': portfolio.client || '',
-            'portfolio-date': portfolio.date || '',
+            'portfolio-date': portfolio.date ? convertDisplayToMonth(portfolio.date) : '',
             'portfolio-category': portfolio.category || 'design', // 기본값 설정
             'portfolio-subcategory': portfolio.subcategory || ''
         };
@@ -1052,7 +1060,9 @@ class PortfolioManager {
             const textOnlyRight = isTextOnlyMode ? (textOnlyRightEl?.value || '') : '';
             const project = isTextOnlyMode ? '' : (projectEl.value || '');
             const client = isTextOnlyMode ? '' : (clientEl.value || '');
-            const date = isTextOnlyMode ? '' : (dateEl.value || '');
+            const dateRaw = isTextOnlyMode ? '' : (dateEl.value || '');
+            const date = isTextOnlyMode ? '' : (dateRaw ? convertMonthToDisplay(dateRaw) : '');
+            const dateSort = isTextOnlyMode ? '' : dateRaw;
             const category = categoryEl.value || '';
             const subcategory = subcategoryEl ? subcategoryEl.value || '' : '';
         
@@ -1187,6 +1197,7 @@ class PortfolioManager {
                 project,
                 client,
                 date,
+                dateSort, // 정렬용 필드 (YYYY-MM 형식)
                 category,
                 subcategory,
                 thumbnail: thumbnailUrl,
@@ -1196,8 +1207,8 @@ class PortfolioManager {
                     this.portfolios.find(p => p.id === this.currentEditId)?.enabled !== false : true, // 기본값 true, 편집 시 기존 값 유지
                 createdAt: this.currentEditId ? 
                     this.portfolios.find(p => p.id === this.currentEditId)?.createdAt : 
-                    new Date().toISOString().split('T')[0],
-                updatedAt: new Date().toISOString().split('T')[0]
+                    new Date().toISOString(),
+                updatedAt: new Date().toISOString()
             };
             
             // Firebase에 저장
@@ -1870,3 +1881,42 @@ document.addEventListener('DOMContentLoaded', () => {
     // 약간의 지연 후 초기화 (Firebase 로딩 대기)
     setTimeout(initializeApp, 200);
 });
+
+// ===== 날짜 변환 함수들 =====
+
+// Month input → "Feb, 2022" 형식으로 변환
+function convertMonthToDisplay(monthValue) {
+    if (!monthValue) return '';
+    
+    const [year, month] = monthValue.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthName = monthNames[parseInt(month) - 1];
+    
+    return `${monthName}, ${year}`;
+}
+
+// "Feb, 2022" 형식 → Month input 형식으로 역변환
+function convertDisplayToMonth(dateString) {
+    if (!dateString) return '';
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const parts = dateString.split(',').map(s => s.trim());
+    if (parts.length !== 2) return '';
+    
+    const monthStr = parts[0];
+    const year = parts[1];
+    
+    let monthNum = monthNames.findIndex(m => monthStr.startsWith(m)) + 1;
+    if (monthNum === 0) return '';
+    
+    const monthPadded = monthNum.toString().padStart(2, '0');
+    
+    return `${year}-${monthPadded}`;
+}
+
+// 전역으로 export
+window.convertMonthToDisplay = convertMonthToDisplay;
+window.convertDisplayToMonth = convertDisplayToMonth;
