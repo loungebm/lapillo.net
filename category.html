@@ -77,7 +77,15 @@
                     (p.category || 'design') === categoryId
                 );
                 
+                // dateSort 기준으로 정렬 (프로젝트 날짜 최신순)
+                filteredPortfolios.sort((a, b) => {
+                    const dateA = a.dateSort || '';
+                    const dateB = b.dateSort || '';
+                    return dateB.localeCompare(dateA);  // 내림차순
+                });
+                
                 console.log(`✅ 로드된 ${categoryId} 포트폴리오:`, filteredPortfolios.length, '개');
+                console.log(`🔄 정렬 기준: dateSort (프로젝트 날짜 최신순)`);
                 console.log(`🎯 요청한 카테고리 ID: "${categoryId}"`);
                 
                 // 첫 번째 포트폴리오의 카테고리 정보 확인
