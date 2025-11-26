@@ -1,7 +1,46 @@
 // Portfolio Admin Management System with Firebase
 // Firebase CDN 방식으로 구현된 관리자 시스템
 
-// 이미지 관리 전용 클래스
+// ===== 날짜 변환 함수들 (맨 위에 정의) =====
+
+// Month input → "Feb, 2022" 형식으로 변환
+function convertMonthToDisplay(monthValue) {
+    if (!monthValue) return '';
+    
+    const [year, month] = monthValue.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthName = monthNames[parseInt(month) - 1];
+    
+    return `${monthName}, ${year}`;
+}
+
+// "Feb, 2022" 형식 → Month input 형식으로 역변환
+function convertDisplayToMonth(dateString) {
+    if (!dateString) return '';
+    
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    const parts = dateString.split(',').map(s => s.trim());
+    if (parts.length !== 2) return '';
+    
+    const monthStr = parts[0];
+    const year = parts[1];
+    
+    let monthNum = monthNames.findIndex(m => monthStr.startsWith(m)) + 1;
+    if (monthNum === 0) return '';
+    
+    const monthPadded = monthNum.toString().padStart(2, '0');
+    
+    return `${year}-${monthPadded}`;
+}
+
+// 전역으로 export
+window.convertMonthToDisplay = convertMonthToDisplay;
+window.convertDisplayToMonth = convertDisplayToMonth;
+
+// ===== 이미지 관리 전용 클래스 =====
 class ImageManager {
     constructor() {
         this.existingImages = []; // 기존 이미지 URL들
@@ -1881,42 +1920,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // 약간의 지연 후 초기화 (Firebase 로딩 대기)
     setTimeout(initializeApp, 200);
 });
-
-// ===== 날짜 변환 함수들 =====
-
-// Month input → "Feb, 2022" 형식으로 변환
-function convertMonthToDisplay(monthValue) {
-    if (!monthValue) return '';
-    
-    const [year, month] = monthValue.split('-');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const monthName = monthNames[parseInt(month) - 1];
-    
-    return `${monthName}, ${year}`;
-}
-
-// "Feb, 2022" 형식 → Month input 형식으로 역변환
-function convertDisplayToMonth(dateString) {
-    if (!dateString) return '';
-    
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
-                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    const parts = dateString.split(',').map(s => s.trim());
-    if (parts.length !== 2) return '';
-    
-    const monthStr = parts[0];
-    const year = parts[1];
-    
-    let monthNum = monthNames.findIndex(m => monthStr.startsWith(m)) + 1;
-    if (monthNum === 0) return '';
-    
-    const monthPadded = monthNum.toString().padStart(2, '0');
-    
-    return `${year}-${monthPadded}`;
-}
-
-// 전역으로 export
-window.convertMonthToDisplay = convertMonthToDisplay;
-window.convertDisplayToMonth = convertDisplayToMonth;
