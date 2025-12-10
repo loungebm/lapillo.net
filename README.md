@@ -7,6 +7,12 @@ Lapillo Design Studio Portfolio Website
 제주도 기반 디자인 스튜디오 Lapillo의 포트폴리오 웹사이트입니다.  
 Firebase를 활용해 포트폴리오 데이터를 동적으로 로드하며, 컴포넌트 기반 레이아웃과 모바일 네비게이션을 지원합니다.
 
+## 📚 문서
+
+- **[프로젝트 아키텍처](./ARCHITECTURE.md)** - 서비스 구조 및 데이터 흐름
+- [Firebase 설정](./FIREBASE_SETUP.md) - Firebase 초기 설정 가이드
+- [CORS 설정](./CORS_SETUP_GUIDE.md) - Storage CORS 문제 해결
+
 ## 🚀 주요 기능
 
 ### 사용자 웹사이트
