@@ -672,6 +672,10 @@ header .header-container {
 
 /* Focus states for accessibility */
 .grid-item:focus {
+    outline: none;
+}
+
+.grid-item:focus-visible {
     outline: 2px solid #333;
     outline-offset: 2px;
 }
