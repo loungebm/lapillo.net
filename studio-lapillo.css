@@ -675,11 +675,6 @@ header .header-container {
     outline: none;
 }
 
-.grid-item:focus-visible {
-    outline: 2px solid #333;
-    outline-offset: 2px;
-}
-
 /* Loading placeholder for images */
 .portfolio-image {
     background-color: #f5f5f5;
